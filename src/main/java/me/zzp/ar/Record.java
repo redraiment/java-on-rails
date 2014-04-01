@@ -77,15 +77,24 @@ public final class Record {
     return type.cast(get(name));
   }
 
-  public void set(String name, Object value) {
+  public Record set(String name, Object value) {
     name = name.toLowerCase();
     values.put(name, value);
+    return this;
   }
 
-  public void save() {
+  public Record save() {
     table.update(this);
+    return this;
   }
 
+  public Record update(Object... args) {
+    for (int i = 0; i < args.length; i += 2) {
+      set(args[0].toString(), args[1]);
+    }
+    return save();
+  }
+  
   public void destroy() {
     table.delete(this);
   }
