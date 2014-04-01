@@ -39,28 +39,26 @@ public final class Table {
   }
 
   /* Association */
-  public Association belongsTo(String name) {
-    Association assoc = new Association(relations, name, true, false);
-    relations.put(name, assoc);
+  private Association assoc(String name, boolean onlyOne, boolean ancestor) {
+    Association assoc = new Association(relations, name, onlyOne, ancestor);
+    relations.put(name.toLowerCase(), assoc);
     return assoc;
+  }
+  
+  public Association belongsTo(String name) {
+    return assoc(name, true, false);
   }
 
   public Association hasOne(String name) {
-    Association assoc = new Association(relations, name, true, true);
-    relations.put(name, assoc);
-    return assoc;
+    return assoc(name, true, true);
   }
 
   public Association hasMany(String name) {
-    Association assoc = new Association(relations, name, false, true);
-    relations.put(name, assoc);
-    return assoc;
+    return assoc(name, false, true);
   }
 
   public Association hasAndBelongsToMany(String name) {
-    Association assoc = new Association(relations, name, false, false);
-    relations.put(name, assoc);
-    return assoc;
+    return assoc(name, false, false);
   }
 
   private String[] getForeignKeys() {
