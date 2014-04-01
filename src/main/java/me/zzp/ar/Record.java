@@ -86,7 +86,7 @@ public final class Record {
     table.update(this);
   }
 
-  public void destory() {
+  public void destroy() {
     table.delete(this);
   }
 

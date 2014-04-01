@@ -43,7 +43,7 @@ public class Sqlite3 {
 
     for (Record r : jobBlog.all()) {
       System.out.println(r);
-      r.destory();
+      r.destroy();
     }
     System.out.println("---");
 
