@@ -20,7 +20,7 @@ import me.zzp.ar.ex.IllegalTableNameException;
 import me.zzp.ar.ex.SqlExecuteException;
 import me.zzp.util.Seq;
 
-public final class DB implements Closeable {
+public final class DB {
 
   public static DB open(String url) {
     try {
@@ -174,11 +174,11 @@ public final class DB implements Closeable {
     execute(String.format("drop index %s on %s", name, table));
   }
 
-  public void close() throws IOException {
+  public void close() {
     try {
       base.close();
     } catch (SQLException e) {
-      throw new IOException(e);
+      throw new RuntimeException("close connection fail", e);
     }
   }
 
