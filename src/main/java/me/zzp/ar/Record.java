@@ -90,11 +90,15 @@ public final class Record {
 
   public Record update(Object... args) {
     for (int i = 0; i < args.length; i += 2) {
-      set(args[0].toString(), args[1]);
+      String name = args[0].toString();
+      if (name.endsWith(":")) {
+        name = name.substring(0, name.length() - 1);
+      }
+      set(name, args[1]);
     }
     return save();
   }
-  
+
   public void destroy() {
     table.delete(this);
   }
