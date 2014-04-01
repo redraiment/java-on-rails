@@ -223,6 +223,10 @@ public final class Table {
   }
 
   public List<Record> findBy(String key, Object value) {
+    key = key.toLowerCase();
+    if (key.endsWith(":")) {
+      key = key.substring(0, key.length() - 1);
+    }
     if (value != null) {
       return where(key.concat(" = ?"), value);
     } else {

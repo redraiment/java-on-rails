@@ -19,6 +19,9 @@ public final class Record {
 
   public <E> E get(String name) {
     name = name.toLowerCase();
+    if (name.endsWith(":")) {
+      name = name.substring(0, name.length() - 1);
+    }
     if (values.containsKey(name)) {
       return (E) values.get(name);
     } else if (table.relations.containsKey(name)) {
@@ -79,6 +82,9 @@ public final class Record {
 
   public Record set(String name, Object value) {
     name = name.toLowerCase();
+    if (name.endsWith(":")) {
+      name = name.substring(0, name.length() - 1);
+    }
     values.put(name, value);
     return this;
   }
@@ -90,11 +96,7 @@ public final class Record {
 
   public Record update(Object... args) {
     for (int i = 0; i < args.length; i += 2) {
-      String name = args[0].toString();
-      if (name.endsWith(":")) {
-        name = name.substring(0, name.length() - 1);
-      }
-      set(name, args[1]);
+      set(args[i].toString(), args[i + 1]);
     }
     return save();
   }
