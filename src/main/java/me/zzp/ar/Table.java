@@ -43,7 +43,7 @@ public final class Table {
     relations.put(name.toLowerCase(), assoc);
     return assoc;
   }
-  
+
   public Association belongsTo(String name) {
     return assoc(name, true, false);
   }
@@ -93,7 +93,7 @@ public final class Table {
       Object value = args[i + 1];
       data.put(key, value);
     }
-    
+
     String[] fields = new String[data.size() + 2];
     int[] types = new int[data.size() + 2];
     Object[] values = new Object[data.size() + 2];
@@ -223,7 +223,11 @@ public final class Table {
   }
 
   public List<Record> findBy(String key, Object value) {
-    return where(key.concat(" = ?"), value);
+    if (value != null) {
+      return where(key.concat(" = ?"), value);
+    } else {
+      return where(key.concat(" is null"));
+    }
   }
 
   public List<Record> all() {
