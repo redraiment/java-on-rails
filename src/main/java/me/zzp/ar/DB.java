@@ -133,7 +133,13 @@ public final class DB {
 
   public PreparedStatement prepare(String sql, Object[] params, int[] types) {
     try {
-      PreparedStatement call = base.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+      PreparedStatement call;
+      if (sql.trim().startsWith("insert")) {
+        call = base.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+      } else {
+        call = base.prepareStatement(sql);
+      }
+
       if (params != null && params.length > 0) {
         for (int i = 0; i < params.length; i++) {
           if (params[i] != null) {
