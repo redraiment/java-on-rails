@@ -50,10 +50,12 @@ public class TSqlBuilder extends AbstractSqlBuilder {
     return setTables(table);
   }
 
+  @Override
   public SqlBuilder join(String table) {
     return addTable(table);
   }
 
+  @Override
   public SqlBuilder on(String... conditions) {
     String table = tables.removeLast();
     return addTable(table.concat(" on ").concat(Seq.join(Arrays.asList(conditions), "and")));
