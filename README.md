@@ -42,7 +42,7 @@ Table Zombie = sqlite3.createTable("zombies", "name text", "graveyard text");
 * SQLite
 * Sybase
 
-如果你使用的数据库不在上述列表中，可以自己实现`me.zzp.ar.d.Dialect`接口，并添加到`META-INF/services/me.zzp.ar.d.Dialect`。`jActiveRecord`采用`Java 6`的`ServiceLoader`自动加载实现`Dialect`接口的类。*注意* 如果你使用`jActiveRecord`创建表，则不用担心兼容性问题。
+如果你使用的数据库不在上述列表中，可以自己实现`me.zzp.ar.d.Dialect`接口，并添加到`META-INF/services/me.zzp.ar.d.Dialect`。`jActiveRecord`采用`Java 6`的`ServiceLoader`自动加载实现`Dialect`接口的类。*注意* 如果你不通过`jActiveRecord`创建表，则不用担心兼容性问题。
 
 此外`jActiveRecord`还会额外添加`created_at`和`updated_at`两个字段，分别保存记录被创建和更新的时间。因此，上述代码总共创建了5个字段：`id`、`name`、`graveyard`、`created_at`和`updated_at`。
 
