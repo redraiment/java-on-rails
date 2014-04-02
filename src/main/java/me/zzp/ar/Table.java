@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,7 +116,7 @@ public final class Table {
       int id = 0;
       if (call.executeUpdate() > 0) {
         ResultSet rs = call.getGeneratedKeys();
-        if (rs != null) {
+        if (rs != null && rs.next()) {
           id = rs.getInt(1);
           rs.close();
         }
@@ -175,8 +176,10 @@ public final class Table {
         }
         records.add(new Record(this, values));
       }
+
+      Statement call = rs.getStatement();
       rs.close();
-      rs.getStatement().close();
+      call.close();
     } catch (SQLException e) {
       throw new SqlExecuteException(sql, e);
     }

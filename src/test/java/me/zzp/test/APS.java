@@ -9,16 +9,17 @@ public class APS {
 
   public static void main(String[] args) {
     // funds, categories, distributions, formulas, options, formula_x_refs, returns
-    DB sqlite3 = DB.open("jdbc:sqlite::memory:");
+    DB dbo = DB.open("jdbc:sqlite::memory:");
+    //DB dbo = DB.open("jdbc:mysql://localhost/aps", "redraiment", "");
 
     /* Tables */
-    Table Fund = sqlite3.createTable("funds", "name text");
-    Table Category = sqlite3.createTable("categories", "fund_id int", "name text");
-    Table Distribution = sqlite3.createTable("distributions", "category_id int", "as_of_date date", "amount double");
-    Table Formula = sqlite3.createTable("formulas", "name text");
-    Table Option = sqlite3.createTable("options", "formula_id int", "with_nav_growth int", "with_reinvest int");
-    Table FormulaXRef = sqlite3.createTable("formula_x_refs", "category_id int", "formula_id int");
-    Table Return = sqlite3.createTable("returns", "formula_x_ref_id int", "as_of_date date", "rate double");
+    Table Fund = dbo.createTable("funds", "name text");
+    Table Category = dbo.createTable("categories", "fund_id int", "name text");
+    Table Distribution = dbo.createTable("distributions", "category_id int", "as_of_date date", "amount double");
+    Table Formula = dbo.createTable("formulas", "name text");
+    Table Option = dbo.createTable("options", "formula_id int", "with_nav_growth int", "with_reinvest int");
+    Table FormulaXRef = dbo.createTable("formula_x_refs", "category_id int", "formula_id int");
+    Table Return = dbo.createTable("returns", "formula_x_ref_id int", "as_of_date date", "rate double");
 
     /* Associations */
     Fund.hasMany("categories").by("fund_id");
@@ -148,6 +149,6 @@ public class APS {
                                            gain.getDouble("rate"));
     }
 
-    sqlite3.close();
+    dbo.close();
   }
 }
