@@ -47,12 +47,12 @@ Zombie.create("graveyard", "My Fathers Basement", "name", "Jim");
 
 `jActiveRecord`提供了下列查询方法：
 
-* Record first()：根据`id`顺序返回第一条记录。
-* Record last()：根据`id`顺序返回最后一条记录。
-* Record find(int id)：返回指定`id`的记录。
-* List<Record> findBy(String key, Object value)：根据指定列的值查询（允许为null）
-* List<Record> all()：返回所有记录。
-* List<Record> where(String condition, Object... args)：指定负责的过滤条件，兼容`java.sql.PreparedStatement`。
+* `Record first()`：根据`id`顺序返回第一条记录。
+* `Record last()`：根据`id`顺序返回最后一条记录。
+* `Record find(int id)`：返回指定`id`的记录。
+* `List<Record> findBy(String key, Object value)`：根据指定列的值查询（允许为null）
+* `List<Record> all()`：返回所有记录。
+* `List<Record> where(String condition, Object... args)`：指定负责的过滤条件，兼容`java.sql.PreparedStatement`。
 
 `first`、`last`和`find`仅返回一条记录；其他方法可能返回多条记录，因此返回按`id`排序的`List`。
 
