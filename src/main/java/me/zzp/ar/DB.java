@@ -13,45 +13,63 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ServiceLoader;
+import me.zzp.ar.d.Dialect;
 import me.zzp.ar.ex.DBOpenException;
 import me.zzp.ar.ex.IllegalTableNameException;
 import me.zzp.ar.ex.SqlExecuteException;
+import me.zzp.ar.ex.UnsupportedDatabaseException;
 import me.zzp.util.Seq;
 
 public final class DB {
+  private final static ServiceLoader<Dialect> dialects;
+  
+  static {
+    dialects = ServiceLoader.load(Dialect.class);
+  }
 
   public static DB open(String url) {
-    try {
-      return new DB(DriverManager.getConnection(url));
-    } catch (SQLException e) {
-      throw new DBOpenException(e);
-    }
+    return open(url, new Properties());
+  }
+
+  public static DB open(String url, String username, String password) {
+    Properties info = new Properties();
+    info.put("user", username);
+    info.put("password", password);
+    return open(url, info);
   }
 
   public static DB open(String url, Properties info) {
     try {
-      return new DB(DriverManager.getConnection(url, info));
-    } catch (SQLException e) {
-      throw new DBOpenException(e);
-    }
-  }
+      Connection base = DriverManager.getConnection(url, info);
+      
+      for (Dialect dialect : dialects) {
+        if (dialect.accept(base)) {
+          return new DB(base, dialect);
+        }
+      }
 
-  public static DB open(String url, String username, String password) {
-    try {
-      return new DB(DriverManager.getConnection(url, username, password));
+      DatabaseMetaData meta = base.getMetaData();
+      String version = String.format("%s %d.%d/%s", meta.getDatabaseProductName(),
+                                                    meta.getDatabaseMajorVersion(),
+                                                    meta.getDatabaseMinorVersion(),
+                                                    meta.getDatabaseProductVersion());
+      throw new UnsupportedDatabaseException(version);
     } catch (SQLException e) {
       throw new DBOpenException(e);
     }
   }
 
   private final Connection base;
+  private final Dialect dialect;
   private final Map<String, Map<String, Integer>> columns;
   private final Map<String, Map<String, Association>> relations;
 
-  private DB(Connection base) {
+  private DB(Connection base, Dialect dialect) {
     this.base = base;
     this.columns = new HashMap<String, Map<String, Integer>>();
     this.relations = new HashMap<String, Map<String, Association>>();
+    this.dialect = dialect;
   }
 
   private Map<String, Integer> getColumns(String name) throws SQLException {
@@ -155,8 +173,8 @@ public final class DB {
   }
 
   public Table createTable(String name, String... columns) {
-    String template = "create table %s (id integer primary key autoincrement, %s, created_at timestamp, updated_at timestamp)";
-    execute(String.format(template, name, Seq.join(Arrays.asList(columns), ",")));
+    String template = "create table %s (id %s, %s, created_at timestamp, updated_at timestamp)";
+    execute(String.format(template, name, dialect.getIdentity(), Seq.join(Arrays.asList(columns), ",")));
     return active(name);
   }
 

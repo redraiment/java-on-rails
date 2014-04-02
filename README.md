@@ -3,7 +3,7 @@
 `jActiveRecord`是我根据自己的喜好用`Java`实现的对象关系映射（ORM）库，灵感来自`Ruby on Rails`的`ActiveRecord`。它拥有以下特色：
 
 1. 零配置：无XML配置文件、无Annotation注解。
-1. 零依赖：不依赖任何第三方库，运行环境为Java 5或以上版本。
+1. 零依赖：不依赖任何第三方库，运行环境为Java 6或以上版本。
 1. 动态性：和其他库不同，无需为每张表定义一个相对应的静态类。表、表对象、行对象等都能动态创建和动态获取。
 1. 简化：`jActiveRecord`虽是模仿`ActiveRecord`，它同时做了一些简化。例如让HasMany、HasAndBelongsToMany等关联对象职责单一化，方便理解。
 
@@ -31,7 +31,20 @@ Table Zombie = sqlite3.createTable("zombies", "name text", "graveyard text");
 
 `createTable`方法的第一个参数是数据库表的名字，之后可以跟随任意个描述字段的参数，格式是名字+类型，用空格隔开。
 
-`createTable`方法会自动添加一个自增长（auto increment）的`id`字段作为主键；此外还添加`created_at`和`updated_at`两个字段分别保存记录被创建和更新的时间。因此，上述代码总共创建了5个字段：`id`、`name`、`graveyard`、`created_at`和`updated_at`。
+`createTable`方法会自动添加一个自增长（auto increment）的`id`字段作为主键。由于各个数据库实现自增长字段的方式不同，目前`jActiveRecord`的“创建表”功能支持如下数据库：
+
+* DB2
+* Derby
+* HyperSQL
+* MySQL
+* Oracle 12c
+* PostgreSQL
+* SQLite
+* Sybase
+
+如果你使用的数据库不在上述列表中，可以自己实现`me.zzp.ar.d.Dialect`接口，并添加到`META-INF/services/me.zzp.ar.d.Dialect`。`jActiveRecord`采用`Java 6`的`ServiceLoader`自动加载实现`Dialect`接口的类。
+
+此外`jActiveRecord`还会额外添加`created_at`和`updated_at`两个字段，分别保存记录被创建和更新的时间。因此，上述代码总共创建了5个字段：`id`、`name`、`graveyard`、`created_at`和`updated_at`。
 
 ## 添加
 
@@ -201,5 +214,3 @@ Tweet.hasAndBelongsToMany("cities").by("city_id").through("tweets_cities");
 # 总结
 
 本文通过一个微博系统的例子，介绍了`jActiveRecord`的常用功能。
-
-由于各个数据库实现自增长字段的方式不同，目前`jActiveRecord`的“创建表”功能仅支持`SQLite`。下一步计划把这种数据库相关的语法抽象出`Dialect`类，根据`java.sql.DatabaseMetaData#getDatabaseProductName`自动选择相应的方言。

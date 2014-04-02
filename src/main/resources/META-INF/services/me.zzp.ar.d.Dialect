@@ -1,0 +1,8 @@
+me.zzp.ar.d.PostgreSQLDialect
+me.zzp.ar.d.HyperSQLDialect
+me.zzp.ar.d.SQLiteDialect
+me.zzp.ar.d.SybaseDialect
+me.zzp.ar.d.OracleDialect
+me.zzp.ar.d.DerbyDialect
+me.zzp.ar.d.MySQLDialect
+me.zzp.ar.d.DB2Dialect
