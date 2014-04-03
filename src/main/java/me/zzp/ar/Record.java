@@ -18,7 +18,7 @@ public final class Record {
   }
 
   public <E> E get(String name) {
-    name = name.toLowerCase();
+    name = name.toUpperCase();
     if (name.endsWith(":")) {
       name = name.substring(0, name.length() - 1);
     }
@@ -81,7 +81,7 @@ public final class Record {
   }
 
   public Record set(String name, Object value) {
-    name = name.toLowerCase();
+    name = name.toUpperCase();
     if (name.endsWith(":")) {
       name = name.substring(0, name.length() - 1);
     }

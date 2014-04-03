@@ -41,7 +41,7 @@ public final class Table {
   /* Association */
   private Association assoc(String name, boolean onlyOne, boolean ancestor) {
     Association assoc = new Association(relations, name, onlyOne, ancestor);
-    relations.put(name.toLowerCase(), assoc);
+    relations.put(name.toUpperCase(), assoc);
     return assoc;
   }
 
@@ -70,7 +70,7 @@ public final class Table {
   }
 
   public Table constrain(String key, int id) {
-    foreignKeys.put(key.toLowerCase(), id);
+    foreignKeys.put(key.toUpperCase(), id);
     return this;
   }
 
@@ -84,7 +84,7 @@ public final class Table {
     Map<String, Object> data = new HashMap<String, Object>();
     data.putAll(foreignKeys);
     for (int i = 0; i < args.length; i += 2) {
-      String key = args[i].toString().toLowerCase();
+      String key = args[i].toString().toUpperCase();
       if (key.endsWith(":")) {
         key = key.substring(0, key.length() - 1);
       }
@@ -171,7 +171,7 @@ public final class Table {
       while (rs.next()) {
         Map<String, Object> values = new LinkedHashMap<String, Object>();
         for (int i = 1; i <= meta.getColumnCount(); i++) {
-          String label = meta.getColumnLabel(i).toLowerCase();
+          String label = meta.getColumnLabel(i).toUpperCase();
           values.put(label, rs.getObject(label));
         }
         records.add(new Record(this, values));
@@ -226,7 +226,7 @@ public final class Table {
   }
 
   public List<Record> findBy(String key, Object value) {
-    key = key.toLowerCase();
+    key = key.toUpperCase();
     if (key.endsWith(":")) {
       key = key.substring(0, key.length() - 1);
     }

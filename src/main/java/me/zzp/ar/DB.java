@@ -104,7 +104,7 @@ public final class DB {
                 || columnName.equalsIgnoreCase("updated_at")) {
               continue;
             }
-            column.put(columnName.toLowerCase(), rs.getInt("data_type"));
+            column.put(columnName.toUpperCase(), rs.getInt("data_type"));
           }
           columns.put(name, column);
         }
@@ -114,7 +114,7 @@ public final class DB {
   }
 
   public Table active(String name) {
-    name = name.toLowerCase();
+    name = name.toUpperCase();
 
     if (!relations.containsKey(name)) {
       synchronized (relations) {
