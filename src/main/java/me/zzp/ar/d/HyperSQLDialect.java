@@ -21,4 +21,9 @@ public class HyperSQLDialect implements Dialect {
   public String getIdentity() {
     return "integer primary key generated always as identity (start with 1, increment by 1)";
   }
+
+  @Override
+  public String getCaseIdentifier(String identifier) {
+    return identifier.toUpperCase();
+  }
 }

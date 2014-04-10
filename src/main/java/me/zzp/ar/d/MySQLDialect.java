@@ -21,4 +21,9 @@ public class MySQLDialect implements Dialect {
   public String getIdentity() {
     return "integer primary key auto_increment";
   }
+
+  @Override
+  public String getCaseIdentifier(String identifier) {
+    return identifier;
+  }
 }

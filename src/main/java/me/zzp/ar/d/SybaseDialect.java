@@ -21,4 +21,9 @@ public class SybaseDialect implements Dialect {
   public String getIdentity() {
     return "integer identity primary key";
   }
+
+  @Override
+  public String getCaseIdentifier(String identifier) {
+    return identifier.toLowerCase();
+  }
 }

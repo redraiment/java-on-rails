@@ -21,4 +21,9 @@ public class PostgreSQLDialect implements Dialect {
   public String getIdentity() {
     return "serial primary key";
   }
+
+  @Override
+  public String getCaseIdentifier(String identifier) {
+    return identifier.toLowerCase();
+  }
 }

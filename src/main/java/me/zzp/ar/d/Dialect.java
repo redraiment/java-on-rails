@@ -5,4 +5,5 @@ import java.sql.Connection;
 public interface Dialect {
   public boolean accept(Connection c);
   public String getIdentity();
+  public String getCaseIdentifier(String identifier);
 }

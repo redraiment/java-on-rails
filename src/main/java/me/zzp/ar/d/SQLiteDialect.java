@@ -21,4 +21,9 @@ public class SQLiteDialect implements Dialect {
   public String getIdentity() {
     return "integer primary key autoincrement";
   }
+
+  @Override
+  public String getCaseIdentifier(String identifier) {
+    return identifier;
+  }
 }
