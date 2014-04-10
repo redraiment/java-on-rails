@@ -45,7 +45,7 @@ public final class Association {
   }
 
   public Association through(String assoc) {
-    assoc = assoc.toUpperCase();
+    assoc = DB.parseKeyParameter(assoc);
     if (relations.containsKey(assoc)) {
       this.assoc = relations.get(assoc);
     } else {

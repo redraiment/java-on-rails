@@ -104,7 +104,7 @@ public final class DB {
                 || columnName.equalsIgnoreCase("updated_at")) {
               continue;
             }
-            column.put(columnName.toUpperCase(), rs.getInt("data_type"));
+            column.put(parseKeyParameter(columnName), rs.getInt("data_type"));
           }
           columns.put(name, column);
         }
@@ -114,7 +114,7 @@ public final class DB {
   }
 
   public Table active(String name) {
-    name = name.toUpperCase();
+    name = dialect.getCaseIdentifier(name);
 
     if (!relations.containsKey(name)) {
       synchronized (relations) {
@@ -207,5 +207,13 @@ public final class DB {
   /* Utility */
   public static Timestamp now() {
     return new Timestamp(System.currentTimeMillis());
+  }
+  
+  static String parseKeyParameter(String name) {
+    name = name.toLowerCase();
+    if (name.endsWith(":")) {
+      name = name.substring(0, name.length() - 1);
+    }
+    return name;
   }
 }

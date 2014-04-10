@@ -18,10 +18,7 @@ public final class Record {
   }
 
   public <E> E get(String name) {
-    name = name.toUpperCase();
-    if (name.endsWith(":")) {
-      name = name.substring(0, name.length() - 1);
-    }
+    name = DB.parseKeyParameter(name);
     if (values.containsKey(name)) {
       return (E) values.get(name);
     } else if (table.relations.containsKey(name)) {
@@ -81,10 +78,7 @@ public final class Record {
   }
 
   public Record set(String name, Object value) {
-    name = name.toUpperCase();
-    if (name.endsWith(":")) {
-      name = name.substring(0, name.length() - 1);
-    }
+    name = DB.parseKeyParameter(name);
     values.put(name, value);
     return this;
   }
