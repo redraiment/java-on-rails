@@ -197,7 +197,7 @@ public class CompatibilityTest {
 
   @Test
   public void mysql() {
-    test(DB.open("jdbc:mysql://localhost/weibo", "redraiment", ""));
+    //test(DB.open("jdbc:mysql://localhost/weibo", "redraiment", ""));
   }
 
   @Test
