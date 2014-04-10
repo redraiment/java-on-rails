@@ -134,7 +134,7 @@ public final class DB {
   public PreparedStatement prepare(String sql, Object[] params, int[] types) {
     try {
       PreparedStatement call;
-      if (sql.trim().startsWith("insert")) {
+      if (sql.trim().toLowerCase().startsWith("insert")) {
         call = base.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
       } else {
         call = base.prepareStatement(sql);
