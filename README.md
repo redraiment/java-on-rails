@@ -135,7 +135,7 @@ Zombie.delete(Zombie.find(1)); // Same with above
 回到僵尸微博系统的问题上，上面的章节仅创建了一张用户表，现在创建另一张表`tweets`保存微博信息：
 
 ```java
-Table Tweet = sqlite3.create("tweets", "zombie_id int", "content text");
+Table Tweet = sqlite3.createTable("tweets", "zombie_id int", "content text");
 ```
 
 其中`zombie_id`作为外键与`zombies`表的`id`像关联。即每个僵尸有多条相关联的微博，而每条微博仅有一个相关联的僵尸。`jActiveRecord`中用`hasMany`和`belongsTo`来描述这种“一对多”的关系。其中`hasMany`在“一”方使用，`belongsTo`在“多”放使用（即外键所在的表）。
@@ -168,7 +168,7 @@ Record zombie = Tweet.find(1).get("zombie");
 让我们再往微博系统中加入“评论”功能：
 
 ```java
-Table Comment = sqlite3.create("comments", "zombie_id int", "tweet_id", "content text");
+Table Comment = sqlite3.createTable("comments", "zombie_id int", "tweet_id", "content text");
 ```
 
 一条微博可以收到多条评论；而一个僵尸有多条微博。因此，僵尸和收到的评论是一种组合的关系：僵尸`hasMany`微博`hasMany`评论。`jActiveRecord`提供`through`描述这种组合的关联关系。
@@ -181,24 +181,25 @@ Zombie.hasMany("send_comments").by("zombie_id").in("comments");
 
 上面的规则描述了`Zombie`首先能找到`Tweet`，借助`Tweet.tweet_id`又能找到`Comment`。第三行代码描述`Zombie`通过`Comment`的`zombie_id`可直接获取发出去的评论。
 
-事实上，`through`可用于组合容易类型的关联，例如`hasAndBelongsToMany`依赖`hasOne`、`belongsTo`依赖另一条`belongsTo`……
+事实上，`through`可用于组合任意类型的关联，例如`hasAndBelongsToMany`依赖`hasOne`、`belongsTo`依赖另一条`belongsTo`……
 
 ### 多对多
 
 RoR中多对多关联有`has_many through`和`has_and_belongs_to_many`两种方法，且功能上有重叠之处。`jActiveRecord`仅保留`hasAndBelongsToMany`这一种方式来描述多对多关联。多对多关联要求有一张独立的映射表，记录映射关系。即两个“多”方都没有包含彼此的外键，而是借助第三张表同时保存它们的外键。
 
-例如，微博能包含所在城市的信息，而城市信息又是单独的一张表。
+例如，为每条微博添加所在城市的信息，而城市单独作为一张表。
 
 ```java
-Table City = sqlite3.create("cities", "name text");
-Table TweetsCities = sqlite3.create("tweets_cities", "tweet_id int", "city_id int");
+sqlite3.dropTable("tweets");
+Tweet = sqlite3.createTable("tweets", "zombie_id int", "city_id int", "content text");
+Table City = sqlite3.createTable("cities", "name text");
 ```
 
-其中表`cities`包含所有城市的信息，`tweets_cities`记录微博和城市的关联关系。`Tweet`为了连接到`City`，它首先要连接到表`tweets_cities`，再通过它访问`cities`。
+其中表`cities`包含所有城市的信息，`tweets`记录僵尸和城市的关联关系。`Zombie`为了自己去过的`City`，它首先要连接到表`tweets`，再通过它访问`cities`。
 
 ```java
-Tweet.hasMany("tweets_cities").by("tweet_id");
-Tweet.hasAndBelongsToMany("cities").by("city_id").through("tweets_cities");
+Zombie.hasMany("tweets").by("zombie_id"); // has defined above
+Zombie.hasAndBelongsToMany("travelled_cities").by("city_id").in("cities").through("tweets");
 ```
 
 顾名思义，多对多的关联返回的类型一定是`Table`而不是`Record`。
