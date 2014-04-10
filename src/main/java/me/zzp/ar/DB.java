@@ -180,7 +180,7 @@ public final class DB {
 
   public Table createTable(String name, String... columns) {
     String template = "create table %s (id %s, %s, created_at timestamp, updated_at timestamp)";
-    execute(String.format(template, name, dialect.getIdentity(), Seq.join(Arrays.asList(columns), ",")));
+    execute(String.format(template, name, dialect.getIdentity(), Seq.join(Arrays.asList(columns), ", ")));
     return active(name);
   }
 
