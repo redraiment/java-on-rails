@@ -18,6 +18,7 @@ import me.zzp.ar.d.Dialect;
 import me.zzp.ar.ex.DBOpenException;
 import me.zzp.ar.ex.IllegalTableNameException;
 import me.zzp.ar.ex.SqlExecuteException;
+import me.zzp.ar.ex.TransactionException;
 import me.zzp.ar.ex.UnsupportedDatabaseException;
 import me.zzp.ar.pool.JdbcDataSource;
 import me.zzp.ar.pool.ThreadConnection;
@@ -208,6 +209,39 @@ public final class DB {
       base.get().close();
     } catch (SQLException e) {
       throw new RuntimeException("close connection fail", e);
+    }
+  }
+  
+  /* Transaction */
+  public void tx(Runnable transaction) {
+    try {
+      base.get().setAutoCommit(false);
+    } catch (SQLException e) {
+      throw new TransactionException("transaction setAutoCommit(false)", e);
+    }
+
+    try {
+      transaction.run();
+    } catch (RuntimeException e) {
+      try {
+        base.get().rollback();
+        base.get().setAutoCommit(true);
+      } catch (SQLException ex) {
+        throw new TransactionException("transaction rollback", ex);
+      }
+      throw e;
+    }
+
+    try {
+      base.get().commit();
+    } catch (SQLException e) {
+      throw new TransactionException("transaction commit", e);
+    } finally {
+      try {
+        base.get().setAutoCommit(true);
+      } catch (SQLException e) {
+        throw new TransactionException("transaction setAutoCommit(true)", e);
+      }
     }
   }
 
