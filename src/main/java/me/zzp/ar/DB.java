@@ -2,7 +2,6 @@ package me.zzp.ar;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,11 +13,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
+import javax.sql.DataSource;
 import me.zzp.ar.d.Dialect;
 import me.zzp.ar.ex.DBOpenException;
 import me.zzp.ar.ex.IllegalTableNameException;
 import me.zzp.ar.ex.SqlExecuteException;
 import me.zzp.ar.ex.UnsupportedDatabaseException;
+import me.zzp.ar.pool.JdbcDataSource;
+import me.zzp.ar.pool.ThreadConnection;
 import me.zzp.util.Seq;
 
 public final class DB {
@@ -40,12 +42,17 @@ public final class DB {
   }
 
   public static DB open(String url, Properties info) {
+    return open(new JdbcDataSource(url, info));
+  }
+
+  public static DB open(DataSource pool) {
     try {
-      Connection base = DriverManager.getConnection(url, info);
+      Connection base = pool.getConnection();
       
       for (Dialect dialect : dialects) {
         if (dialect.accept(base)) {
-          return new DB(base, dialect);
+          base.close();
+          return new DB(new ThreadConnection(pool), dialect);
         }
       }
 
@@ -60,12 +67,12 @@ public final class DB {
     }
   }
 
-  private final Connection base;
+  private final ThreadLocal<Connection> base;
   private final Dialect dialect;
   private final Map<String, Map<String, Integer>> columns;
   private final Map<String, Map<String, Association>> relations;
 
-  private DB(Connection base, Dialect dialect) {
+  private DB(ThreadLocal<Connection> base, Dialect dialect) {
     this.base = base;
     this.columns = new HashMap<String, Map<String, Integer>>();
     this.relations = new HashMap<String, Map<String, Association>>();
@@ -95,7 +102,7 @@ public final class DB {
           }
 
           Map<String, Integer> column = new LinkedHashMap<String, Integer>();
-          DatabaseMetaData db = base.getMetaData();
+          DatabaseMetaData db = base.get().getMetaData();
           ResultSet rs = db.getColumns(catalog, schema, table, null);
           while (rs.next()) {
             String columnName = rs.getString("column_name");
@@ -135,9 +142,9 @@ public final class DB {
     try {
       PreparedStatement call;
       if (sql.trim().toLowerCase().startsWith("insert")) {
-        call = base.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        call = base.get().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
       } else {
-        call = base.prepareStatement(sql);
+        call = base.get().prepareStatement(sql);
       }
 
       if (params != null && params.length > 0) {
@@ -198,7 +205,7 @@ public final class DB {
 
   public void close() {
     try {
-      base.close();
+      base.get().close();
     } catch (SQLException e) {
       throw new RuntimeException("close connection fail", e);
     }
