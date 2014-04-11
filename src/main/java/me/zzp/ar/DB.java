@@ -22,7 +22,7 @@ import me.zzp.ar.ex.UnsupportedDatabaseException;
 import me.zzp.util.Seq;
 
 public final class DB {
-  private final static ServiceLoader<Dialect> dialects;
+  private static final ServiceLoader<Dialect> dialects;
   
   static {
     dialects = ServiceLoader.load(Dialect.class);
