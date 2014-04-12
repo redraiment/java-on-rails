@@ -26,7 +26,7 @@ import me.zzp.util.Seq;
 
 public final class DB {
   private static final ServiceLoader<Dialect> dialects;
-  
+
   static {
     dialects = ServiceLoader.load(Dialect.class);
   }
@@ -49,7 +49,7 @@ public final class DB {
   public static DB open(DataSource pool) {
     try {
       Connection base = pool.getConnection();
-      
+
       for (Dialect dialect : dialects) {
         if (dialect.accept(base)) {
           base.close();
@@ -211,9 +211,9 @@ public final class DB {
       throw new RuntimeException("close connection fail", e);
     }
   }
-  
+
   /* Transaction */
-  public void tx(Runnable transaction) {
+  public void batch(Runnable transaction) {
     try {
       base.get().setAutoCommit(false);
     } catch (SQLException e) {
@@ -245,11 +245,20 @@ public final class DB {
     }
   }
 
+  public boolean tx(Runnable transaction) {
+    try {
+      batch(transaction);
+    } catch (Throwable e) {
+      return false;
+    }
+    return true;
+  }
+
   /* Utility */
   public static Timestamp now() {
     return new Timestamp(System.currentTimeMillis());
   }
-  
+
   static String parseKeyParameter(String name) {
     name = name.toLowerCase();
     if (name.endsWith(":")) {

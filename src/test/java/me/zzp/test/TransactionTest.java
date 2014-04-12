@@ -1,17 +1,17 @@
 package me.zzp.test;
 
-import org.junit.Assert;
 import me.zzp.ar.DB;
 import me.zzp.ar.Record;
 import me.zzp.ar.Table;
-import me.zzp.ar.ex.SqlExecuteException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TransactionTest {
+
   private DB dbo;
-  
+
   @Before
   public void setUp() {
     dbo = DB.open("jdbc:sqlite::memory:");
@@ -19,7 +19,7 @@ public class TransactionTest {
     Table Zombie = dbo.createTable("zombies", "name varchar(64)");
     Zombie.hasMany("tweets").by("zombie_id");
   }
-  
+
   @After
   public void tearDown() {
     if (dbo != null) {
@@ -32,7 +32,7 @@ public class TransactionTest {
   public void testTx() {
     final Table Zombie = dbo.active("zombies");
     Table Tweet = dbo.active("tweets");
-    
+
     dbo.tx(new Runnable() {
       @Override
       public void run() {
@@ -44,22 +44,17 @@ public class TransactionTest {
     Assert.assertEquals(1, Zombie.all().size());
     Assert.assertEquals(1, Tweet.all().size());
 
-    try {
-      dbo.tx(new Runnable() {
-        @Override
-        public void run() {
-          Record bob = Zombie.create("name:", "Bob");
-          Table tweets = bob.get("tweets");
-          tweets.create("content:", "Hello world");
-        }
-      });
-      Assert.fail();
-    } catch (SqlExecuteException e) {
-      System.err.println(e.getMessage());
-      Assert.assertEquals(1, Zombie.all().size());
-      Assert.assertEquals(1, Tweet.all().size());
-    }
-    
+    Assert.assertFalse(dbo.tx(new Runnable() {
+      @Override
+      public void run() {
+        Record bob = Zombie.create("name:", "Bob");
+        Table tweets = bob.get("tweets");
+        tweets.create("content:", "Hello world");
+      }
+    }));
+    Assert.assertEquals(1, Zombie.all().size());
+    Assert.assertEquals(1, Tweet.all().size());
+
     Record ash = Zombie.find(1);
     Table tweets = ash.get("tweets");
     tweets.create("content:", "Hello ash");
