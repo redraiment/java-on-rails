@@ -173,9 +173,21 @@ public class CompatibilityTest {
     }
   }
 
+  public void valiateQuery() {
+    Assert.assertEquals(1, Tweet.first().getInt("id"));
+    Assert.assertEquals(12, Tweet.last().getInt("id"));
+    List<Record> list = Tweet.paging(2, 4);
+    Assert.assertEquals(4, list.size());
+    Assert.assertEquals(9, list.get(0).getInt("id"));
+    Assert.assertEquals(10, list.get(1).getInt("id"));
+    Assert.assertEquals(11, list.get(2).getInt("id"));
+    Assert.assertEquals(12, list.get(3).getInt("id"));
+  }
+
   public void validate() {
     validateCreate();
     validateRelation();
+    valiateQuery();
   }
 
   public void test(DB dbo) {

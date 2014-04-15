@@ -29,6 +29,7 @@ public final class Table {
 
   private String foreignTable;
   private final Map<String, Integer> foreignKeys = new HashMap<String, Integer>();
+  private String[] sort;
 
   Table(DB dbo, String name, Map<String, Integer> columns, Map<String, Association> relations) {
     this.dbo = dbo;
@@ -36,6 +37,7 @@ public final class Table {
     this.columns = columns;
     this.relations = relations;
     this.primaryKey = name.concat(".id");
+    this.sort = new String[] { primaryKey };
   }
 
   /* Association */
@@ -77,6 +79,11 @@ public final class Table {
 
   public Table join(String table) {
     this.foreignTable = table;
+    return this;
+  }
+
+  public Table sort(String... columns) {
+    sort = columns;
     return this;
   }
 
@@ -200,6 +207,11 @@ public final class Table {
         sql.addCondition(condition);
       }
     }
+    if (sort != null && sort.length > 0) {
+      sql.orderBy(sort);
+    } else {
+      sql.orderBy(primaryKey);
+    }
     return sql;
   }
 
@@ -212,11 +224,27 @@ public final class Table {
   }
 
   public Record first() {
-    return one(query(select().orderBy(primaryKey.concat(" asc")).limit(1).toString()));
+    return one(query(select().limit(1).toString()));
   }
 
   public Record last() {
-    return one(query(select().orderBy(primaryKey.concat(" desc")).limit(1).toString()));
+    String[] reverse;
+    if (sort != null && sort.length > 0) {
+      reverse = new String[sort.length];
+      for (int i = 0; i < sort.length; i++) {
+        String order = sort[i].toLowerCase();
+        if (order.matches(".*\\basc$")) {
+          reverse[i] = sort[i].replaceAll("(?i)asc$", "desc");
+        } else if (order.matches(".*\\bdesc$")) {
+          reverse[i] = sort[i].replaceAll("(?i)desc$", "");
+        } else {
+          reverse[i] = sort[i].concat(" desc");
+        }
+      }
+    } else {
+      reverse = new String[] { primaryKey.concat(" desc") };
+    }
+    return one(query(select().orderBy(reverse).limit(1).toString()));
   }
 
   public Record find(int id) {
@@ -233,10 +261,14 @@ public final class Table {
   }
 
   public List<Record> all() {
-    return query(select().orderBy(primaryKey.concat(" asc")).toString());
+    return query(select().toString());
   }
 
   public List<Record> where(String condition, Object... args) {
-    return query(select().addCondition(condition).orderBy(primaryKey.concat(" asc")).toString(), args);
+    return query(select().addCondition(condition).toString(), args);
+  }
+
+  public List<Record> paging(int page, int size) {
+    return query(select().limit(size).offset(page * size).toString());
   }
 }
