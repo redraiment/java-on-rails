@@ -133,6 +133,23 @@ public final class Table {
     }
   }
 
+  /**
+   * 根据现有的Record创建新的Record.
+   * 为跨数据库之间导数据提供便捷接口；同时也方便根据模板创建多条相似的纪录。
+   * @param o Record对象
+   * @return 根据参数创建的新的Record对象
+   */
+  public Record create(Record o) {
+    List<Object> params = new LinkedList<Object>();
+    for (String key : columns.keySet()) {
+      if (!foreignKeys.containsKey(key)) {
+        params.add(key);
+        params.add(o.get(key));
+      }
+    }
+    return create(params.toArray());
+  }
+
   public void update(Record record) {
     String[] fields = new String[columns.size() + 1];
     int[] types = new int[columns.size() + 1];
