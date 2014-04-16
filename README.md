@@ -49,25 +49,29 @@ Table Zombie = sqlite3.createTable("zombies", "name text", "graveyard text");
 ## 添加
 
 ```java
+Table Zombie = sqlite3.active("zombies");
 Zombie.create("name:", "Ash", "graveyard:", "Glen Haven Memorial Cemetery");
 Zombie.create("name", "Bob", "graveyard", "Chapel Hill Cemetery");
 Zombie.create("graveyard", "My Fathers Basement", "name", "Jim");
 ```
 
-使用`Table#create`就能新增一条记录（并且返回刚刚创建的记录）。该方法使用“命名参数”，来突显每个值的含义。由于Java语法不支持命名参数，因此列名末尾允许带一个冗余的冒号，即“name:”与“name”是等价的；此外键值对顺序无关，因此第三条名为“Jim”的僵尸记录也能成功创建。
+首先用`DB#active`获取之前创建的表对象，然后使用`Table#create`新增一条记录（并且立即返回刚创建的记录）。该方法可使用“命名参数”，来突显每个值的含义。由于Java语法不支持命名参数，因此列名末尾允许带一个冗余的冒号，即“name:”与“name”是等价的；此外键值对顺序无关，因此第三条名为“Jim”的僵尸记录也能成功创建。
 
 ## 查询
 
 `jActiveRecord`提供了下列查询方法：
 
-* `Record first()`：根据`id`顺序返回第一条记录。
-* `Record last()`：根据`id`顺序返回最后一条记录。
+* `Table sort(String... columns)`：设置用于排序的列，默认为`id`升序。
+* `Record first()`：返回第一条记录。
+* `Record first(String condition, Object... args)`：根据指定列的值第一条记录（允许为null）。
+* `Record last()`：返回最后一条记录。
 * `Record find(int id)`：返回指定`id`的记录。
-* `List<Record> findBy(String key, Object value)`：根据指定列的值查询（允许为null）
+* `Record findA(String condition, Object... args)`：根据条件返回第一条记录。
+* `List<Record> findBy(String key, Object value)`：根据指定列的值查询（允许为null）。
 * `List<Record> all()`：返回所有记录。
 * `List<Record> where(String condition, Object... args)`：指定负责的过滤条件，兼容`java.sql.PreparedStatement`。
 
-`first`、`last`和`find`仅返回一条记录；其他方法可能返回多条记录，因此返回按`id`排序的`List`。
+`first`、`last`和`find`等方法仅返回一条记录；另一些方法可能返回多条记录，因此返回`List`。
 
 例如，获得`id`为3的僵尸有以下方法：
 
