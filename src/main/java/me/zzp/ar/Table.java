@@ -243,8 +243,12 @@ public final class Table {
   public Record first() {
     return one(query(select().limit(1).toString()));
   }
-
-  public Record last() {
+  
+  public Record first(String condition, Object... args) {
+    return one(query(select().addCondition(condition).limit(1).toString(), args));
+  }
+  
+  private String[] reverse() {
     String[] reverse;
     if (sort != null && sort.length > 0) {
       reverse = new String[sort.length];
@@ -261,11 +265,34 @@ public final class Table {
     } else {
       reverse = new String[] { primaryKey.concat(" desc") };
     }
-    return one(query(select().orderBy(reverse).limit(1).toString()));
+    return reverse;
+  }
+
+  public Record last() {
+    return one(query(select().orderBy(reverse()).limit(1).toString()));
+  }
+
+  public Record last(String condition, Object... args) {
+    return one(query(select().addCondition(condition).orderBy(reverse()).limit(1).toString(), args));
   }
 
   public Record find(int id) {
     return one(where(String.format("%s = %d", primaryKey, id)));
+  }
+
+  /**
+   * 根据指定列，返回符合条件的第一条记录.
+   * @param key 要匹配的列名
+   * @param value 要匹配的值
+   * @return 返回符合条件的第一条记录
+   */
+  public Record findA(String key, Object value) {
+    key = DB.parseKeyParameter(key);
+    if (value != null) {
+      return first(key.concat(" = ?"), value);
+    } else {
+      return first(key.concat(" is null"));
+    }
   }
 
   public List<Record> findBy(String key, Object value) {
