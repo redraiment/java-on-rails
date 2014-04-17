@@ -193,7 +193,7 @@ public final class DB {
   }
 
   public void dropTable(String name) {
-    execute(String.format("drop table %s", name));
+    execute(String.format("drop table if exists %s", name));
   }
 
   public void createIndex(String name, String table, String... columns) {
@@ -201,7 +201,7 @@ public final class DB {
   }
 
   public void dropIndex(String name, String table) {
-    execute(String.format("drop index %s on %s", name, table));
+    execute(String.format("drop index %s", name));
   }
 
   public void close() {
