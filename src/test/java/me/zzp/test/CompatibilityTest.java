@@ -89,6 +89,8 @@ public class CompatibilityTest {
   }
 
   public void validateCreate() {
+    Assert.assertEquals(5, dbo.getTableNames().size());
+
     String[] cityNames = new String[] {"Boston", "NewYork"};
     List<Record> cities = City.all();
     Assert.assertEquals(cityNames.length, cities.size());

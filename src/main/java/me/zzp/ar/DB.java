@@ -9,10 +9,12 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
+import java.util.Set;
 import javax.sql.DataSource;
 import me.zzp.ar.d.Dialect;
 import me.zzp.ar.ex.DBOpenException;
@@ -78,6 +80,29 @@ public final class DB {
     this.columns = new HashMap<String, Map<String, Integer>>();
     this.relations = new HashMap<String, Map<String, Association>>();
     this.dialect = dialect;
+  }
+
+  public Set<String> getTableNames() {
+    Set<String> tables = new HashSet();
+    try {
+      DatabaseMetaData db = base.get().getMetaData();
+      ResultSet rs = db.getTables(null, null, "%", new String[] {"TABLE"});
+      while (rs.next()) {
+        tables.add(rs.getString("table_name"));
+      }
+      rs.close();
+    } catch (SQLException e) {
+      throw new DBOpenException(e);
+    }
+    return tables;
+  }
+  
+  public Set<Table> getTables() {
+    Set<Table> tables = new HashSet();
+    for (String name : getTableNames()) {
+      tables.add(active(name));
+    }
+    return tables;
   }
 
   private Map<String, Integer> getColumns(String name) throws SQLException {
@@ -185,7 +210,7 @@ public final class DB {
       throw new SqlExecuteException(sql, e);
     }
   }
-
+  
   public Table createTable(String name, String... columns) {
     String template = "create table %s (id %s, %s, created_at timestamp, updated_at timestamp)";
     execute(String.format(template, name, dialect.getIdentity(), Seq.join(Arrays.asList(columns), ", ")));
