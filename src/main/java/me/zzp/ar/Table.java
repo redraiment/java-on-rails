@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import me.zzp.ar.ex.IllegalFieldNameException;
 import me.zzp.ar.ex.SqlExecuteException;
-import me.zzp.ar.sql.AbstractSqlBuilder;
 import me.zzp.ar.sql.SqlBuilder;
 import me.zzp.ar.sql.TSqlBuilder;
 import me.zzp.util.Seq;
@@ -29,7 +28,6 @@ public final class Table {
 
   private String foreignTable;
   private final Map<String, Integer> foreignKeys = new HashMap<String, Integer>();
-  private String[] sort;
 
   Table(DB dbo, String name, Map<String, Integer> columns, Map<String, Association> relations) {
     this.dbo = dbo;
@@ -37,7 +35,6 @@ public final class Table {
     this.columns = columns;
     this.relations = relations;
     this.primaryKey = name.concat(".id");
-    this.sort = new String[] { primaryKey };
   }
 
   /* Association */
@@ -79,11 +76,6 @@ public final class Table {
 
   public Table join(String table) {
     this.foreignTable = table;
-    return this;
-  }
-
-  public Table sort(String... columns) {
-    sort = columns;
     return this;
   }
 
@@ -185,9 +177,9 @@ public final class Table {
     }
   }
 
-  public List<Record> query(String sql, Object... args) {
+  List<Record> query(SqlBuilder sql, Object... args) {
     List<Record> records = new LinkedList<Record>();
-    ResultSet rs = dbo.query(sql, args);
+    ResultSet rs = dbo.query(sql.toString(), args);
     try {
       ResultSetMetaData meta = rs.getMetaData();
       while (rs.next()) {
@@ -203,17 +195,17 @@ public final class Table {
       rs.close();
       call.close();
     } catch (SQLException e) {
-      throw new SqlExecuteException(sql, e);
+      throw new SqlExecuteException(sql.toString(), e);
     }
     return records;
   }
 
-  private AbstractSqlBuilder select(String... columns) {
-    AbstractSqlBuilder sql = new TSqlBuilder();
+  public Query select(String... columns) {
+    Query sql = new Query(this);
     if (columns == null || columns.length == 0) {
       sql.select(String.format("%s.*", name));
     } else {
-      sql.select(Seq.map(Arrays.asList(columns), String.format("%s.%%s", name)).toArray(new String[0]));
+      sql.select(columns);
     }
     sql.from(name);
     if (foreignTable != null && !foreignTable.isEmpty()) {
@@ -221,63 +213,30 @@ public final class Table {
     }
     if (!foreignKeys.isEmpty()) {
       for (String condition : getForeignKeys()) {
-        sql.addCondition(condition);
+        sql.where(condition);
       }
     }
-    if (sort != null && sort.length > 0) {
-      sql.orderBy(sort);
-    } else {
-      sql.orderBy(primaryKey);
-    }
-    return sql;
-  }
-
-  private Record one(List<Record> models) {
-    if (models.isEmpty()) {
-      return null;
-    } else {
-      return models.get(0);
-    }
+    return sql.orderBy(primaryKey);
   }
 
   public Record first() {
-    return one(query(select().limit(1).toString()));
+    return select().limit(1).one();
   }
   
   public Record first(String condition, Object... args) {
-    return one(query(select().addCondition(condition).limit(1).toString(), args));
-  }
-  
-  private String[] reverse() {
-    String[] reverse;
-    if (sort != null && sort.length > 0) {
-      reverse = new String[sort.length];
-      for (int i = 0; i < sort.length; i++) {
-        String order = sort[i].toLowerCase();
-        if (order.matches(".*\\basc$")) {
-          reverse[i] = sort[i].replaceAll("(?i)asc$", "desc");
-        } else if (order.matches(".*\\bdesc$")) {
-          reverse[i] = sort[i].replaceAll("(?i)desc$", "");
-        } else {
-          reverse[i] = sort[i].concat(" desc");
-        }
-      }
-    } else {
-      reverse = new String[] { primaryKey.concat(" desc") };
-    }
-    return reverse;
+    return select().where(condition, args).limit(1).one();
   }
 
   public Record last() {
-    return one(query(select().orderBy(reverse()).limit(1).toString()));
+    return select().orderBy(primaryKey.concat(" desc")).limit(1).one();
   }
 
   public Record last(String condition, Object... args) {
-    return one(query(select().addCondition(condition).orderBy(reverse()).limit(1).toString(), args));
+    return select().where(condition, args).orderBy(primaryKey.concat(" desc")).limit(1).one();
   }
 
   public Record find(int id) {
-    return one(where(String.format("%s = %d", primaryKey, id)));
+    return first(primaryKey.concat(" = ?"), id);
   }
 
   /**
@@ -305,14 +264,14 @@ public final class Table {
   }
 
   public List<Record> all() {
-    return query(select().toString());
+    return select().all();
   }
 
   public List<Record> where(String condition, Object... args) {
-    return query(select().addCondition(condition).toString(), args);
+    return select().where(condition, args).all();
   }
 
   public List<Record> paging(int page, int size) {
-    return query(select().limit(size).offset(page * size).toString());
+    return select().limit(size).offset(page * size).all();
   }
 }
