@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -34,6 +35,10 @@ public final class Table {
     this.columns = columns;
     this.relations = relations;
     this.primaryKey = name.concat(".id");
+  }
+
+  public Map<String, Integer> getColumns() {
+    return Collections.unmodifiableMap(columns);
   }
 
   /* Association */
