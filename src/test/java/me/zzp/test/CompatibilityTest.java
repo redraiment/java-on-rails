@@ -55,7 +55,7 @@ public class CompatibilityTest {
     Table bobTweets = bob.get("tweets");
     Table bobTweetOnBoston = bobTweets.create("city_id:", boston.getInt("id"), "content:", "Hello Boston from Bob!").get("comments");
     Table bobTweetOnNewYork = bobTweets.create("city_id:", newyord.getInt("id"), "content:", "Hello NewYord from Bob!").get("comments");
-    
+
     Record jim = Zombie.create("name:", "Jim");
     Table jimTweets = jim.get("tweets");
     Table jimTweetOnBoston = jimTweets.create("city_id:", boston.getInt("id"), "content:", "Hello Boston from Jim!").get("comments");
@@ -73,7 +73,7 @@ public class CompatibilityTest {
     jimTweetOnBoston.create("zombie_id:", bob.getInt("id"), "content:", "Cool from Bob @ Boston");
     jimTweetOnNewYork.create("zombie_id:", ash.getInt("id"), "content:", "Cool from Ash @ NewYork");
     jimTweetOnNewYork.create("zombie_id:", bob.getInt("id"), "content:", "Cool from Bob @ NewYork");
-    
+
     Relation.create("following:", ash.getInt("id"), "follower:", bob.getInt("id"));
     Relation.create("following:", ash.getInt("id"), "follower:", jim.getInt("id"));
     Relation.create("following:", bob.getInt("id"), "follower:", ash.getInt("id"));
@@ -87,20 +87,22 @@ public class CompatibilityTest {
     setUpAssociations();
     setUpMetaData();
   }
-  
+
   public void validateCreate() {
+    Assert.assertEquals(5, dbo.getTableNames().size());
+
     String[] cityNames = new String[] {"Boston", "NewYork"};
     List<Record> cities = City.all();
     Assert.assertEquals(cityNames.length, cities.size());
     for (int i = 0; i < cityNames.length; i++)
       Assert.assertEquals(cityNames[i], cities.get(i).getStr("name"));
-    
+
     String[] zombieNames = new String[] {"Ash", "Bob", "Jim"};
     List<Record> zombies = Zombie.all();
     Assert.assertEquals(zombieNames.length, zombies.size());
     for (int i = 0; i < zombieNames.length; i++)
       Assert.assertEquals(zombieNames[i], zombies.get(i).getStr("name"));
-    
+
     List<Record> tweets = Tweet.all();
     Assert.assertEquals(cityNames.length * zombieNames.length, tweets.size());
     Iterator<Record> tweet = tweets.iterator();
@@ -109,7 +111,7 @@ public class CompatibilityTest {
         Assert.assertEquals(String.format("Hello %s from %s!", city, zombie), tweet.next().getStr("content"));
       }
     }
-    
+
     List<Record> comments = Comment.all();
     Assert.assertEquals((zombieNames.length - 1) * cityNames.length * zombieNames.length, comments.size());
     Iterator<Record> comment = comments.iterator();
@@ -122,7 +124,7 @@ public class CompatibilityTest {
         }
       }
     }
-    
+
     List<Record> relations = Relation.all();
     Iterator<Record> relation = relations.iterator();
     for (int zombie = 0; zombie < zombieNames.length; zombie++) {
@@ -135,7 +137,7 @@ public class CompatibilityTest {
       }
     }
   }
-  
+
   public void validateRelation() {
     for (Record zombie : Zombie.all()) {
       Assert.assertEquals(2, zombie.get("tweets", Table.class).all().size());
@@ -147,7 +149,7 @@ public class CompatibilityTest {
       Assert.assertEquals(2, zombie.get("following_relations", Table.class).all().size());
       Assert.assertEquals(2, zombie.get("followings", Table.class).all().size());
     }
-    
+
     for (Record city : City.all()) {
       Assert.assertEquals(3, city.get("tweets", Table.class).all().size());
       Assert.assertEquals(3, city.get("zombies", Table.class).all().size());
@@ -172,10 +174,22 @@ public class CompatibilityTest {
       }
     }
   }
-  
+
+  public void valiateQuery() {
+    Assert.assertEquals(1, Tweet.first().getInt("id"));
+    Assert.assertEquals(12, Tweet.last().getInt("id"));
+    List<Record> list = Tweet.paging(2, 4);
+    Assert.assertEquals(4, list.size());
+    Assert.assertEquals(9, list.get(0).getInt("id"));
+    Assert.assertEquals(10, list.get(1).getInt("id"));
+    Assert.assertEquals(11, list.get(2).getInt("id"));
+    Assert.assertEquals(12, list.get(3).getInt("id"));
+  }
+
   public void validate() {
     validateCreate();
     validateRelation();
+    valiateQuery();
   }
 
   public void test(DB dbo) {
@@ -208,25 +222,6 @@ public class CompatibilityTest {
   @Test
   public void hypersql() {
     test(DB.open("jdbc:hsqldb:mem:weibo", "sa", ""));
-  }
-
-  @Test
-  public void derby() {
-    test(DB.open("jdbc:derby:memory:weibo;create=true"));
-  }
-
-  @Test
-  public void sybase() {
-    // todo
-  }
-
-  @Test
-  public void db2() {
-    // todo
-  }
-
-  public void oracle() {
-    // todo
   }
 
   public void tearDown() {

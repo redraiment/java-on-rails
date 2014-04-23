@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import me.zzp.ar.ex.IllegalFieldNameException;
 import me.zzp.ar.ex.SqlExecuteException;
-import me.zzp.ar.sql.AbstractSqlBuilder;
 import me.zzp.ar.sql.SqlBuilder;
 import me.zzp.ar.sql.TSqlBuilder;
 import me.zzp.util.Seq;
@@ -36,6 +35,10 @@ public final class Table {
     this.columns = columns;
     this.relations = relations;
     this.primaryKey = name.concat(".id");
+  }
+
+  public Map<String, Integer> getColumns() {
+    return Collections.unmodifiableMap(columns);
   }
 
   /* Association */
@@ -126,6 +129,23 @@ public final class Table {
     }
   }
 
+  /**
+   * 根据现有的Record创建新的Record.
+   * 为跨数据库之间导数据提供便捷接口；同时也方便根据模板创建多条相似的纪录。
+   * @param o Record对象
+   * @return 根据参数创建的新的Record对象
+   */
+  public Record create(Record o) {
+    List<Object> params = new LinkedList<Object>();
+    for (String key : columns.keySet()) {
+      if (!foreignKeys.containsKey(key)) {
+        params.add(key);
+        params.add(o.get(key));
+      }
+    }
+    return create(params.toArray());
+  }
+
   public void update(Record record) {
     String[] fields = new String[columns.size() + 1];
     int[] types = new int[columns.size() + 1];
@@ -161,9 +181,9 @@ public final class Table {
     }
   }
 
-  public List<Record> query(String sql, Object... args) {
+  List<Record> query(SqlBuilder sql, Object... args) {
     List<Record> records = new LinkedList<Record>();
-    ResultSet rs = dbo.query(sql, args);
+    ResultSet rs = dbo.query(sql.toString(), args);
     try {
       ResultSetMetaData meta = rs.getMetaData();
       while (rs.next()) {
@@ -179,17 +199,17 @@ public final class Table {
       rs.close();
       call.close();
     } catch (SQLException e) {
-      throw new SqlExecuteException(sql, e);
+      throw new SqlExecuteException(sql.toString(), e);
     }
     return records;
   }
 
-  private AbstractSqlBuilder select(String... columns) {
-    AbstractSqlBuilder sql = new TSqlBuilder();
+  public Query select(String... columns) {
+    Query sql = new Query(this);
     if (columns == null || columns.length == 0) {
       sql.select(String.format("%s.*", name));
     } else {
-      sql.select(Seq.map(Arrays.asList(columns), String.format("%s.%%s", name)).toArray(new String[0]));
+      sql.select(columns);
     }
     sql.from(name);
     if (foreignTable != null && !foreignTable.isEmpty()) {
@@ -197,30 +217,45 @@ public final class Table {
     }
     if (!foreignKeys.isEmpty()) {
       for (String condition : getForeignKeys()) {
-        sql.addCondition(condition);
+        sql.where(condition);
       }
     }
-    return sql;
-  }
-
-  private Record one(List<Record> models) {
-    if (models.isEmpty()) {
-      return null;
-    } else {
-      return models.get(0);
-    }
+    return sql.orderBy(primaryKey);
   }
 
   public Record first() {
-    return one(query(select().orderBy(primaryKey.concat(" asc")).limit(1).toString()));
+    return select().limit(1).one();
+  }
+  
+  public Record first(String condition, Object... args) {
+    return select().where(condition, args).limit(1).one();
   }
 
   public Record last() {
-    return one(query(select().orderBy(primaryKey.concat(" desc")).limit(1).toString()));
+    return select().orderBy(primaryKey.concat(" desc")).limit(1).one();
+  }
+
+  public Record last(String condition, Object... args) {
+    return select().where(condition, args).orderBy(primaryKey.concat(" desc")).limit(1).one();
   }
 
   public Record find(int id) {
-    return one(where(String.format("%s = %d", primaryKey, id)));
+    return first(primaryKey.concat(" = ?"), id);
+  }
+
+  /**
+   * 根据指定列，返回符合条件的第一条记录.
+   * @param key 要匹配的列名
+   * @param value 要匹配的值
+   * @return 返回符合条件的第一条记录
+   */
+  public Record findA(String key, Object value) {
+    key = DB.parseKeyParameter(key);
+    if (value != null) {
+      return first(key.concat(" = ?"), value);
+    } else {
+      return first(key.concat(" is null"));
+    }
   }
 
   public List<Record> findBy(String key, Object value) {
@@ -233,10 +268,14 @@ public final class Table {
   }
 
   public List<Record> all() {
-    return query(select().orderBy(primaryKey.concat(" asc")).toString());
+    return select().all();
   }
 
   public List<Record> where(String condition, Object... args) {
-    return query(select().addCondition(condition).orderBy(primaryKey.concat(" asc")).toString(), args);
+    return select().where(condition, args).all();
+  }
+
+  public List<Record> paging(int page, int size) {
+    return select().limit(size).offset(page * size).all();
   }
 }
