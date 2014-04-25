@@ -4,8 +4,12 @@
 
 1. 零配置：无XML配置文件、无Annotation注解。
 1. 零依赖：不依赖任何第三方库，运行环境为Java 6或以上版本。
+1. 零SQL：无需显式地写任何SQL语句，甚至多表关联、分页等高级查询亦是如此。 
 1. 动态性：和其他库不同，无需为每张表定义一个相对应的静态类。表、表对象、行对象等都能动态创建和动态获取。
-1. 简化：`jActiveRecord`虽是模仿`ActiveRecord`，它同时做了一些简化。例如让HasMany、HasAndBelongsToMany等关联对象职责单一化，方便理解。
+1. 简化：`jActiveRecord`虽是模仿`ActiveRecord`，它同时做了一些简化。例如，所有的操作仅涉及DB、Table和Record三个类，并且HasMany、HasAndBelongsToMany等关联对象职责单一化，容易理解。
+1. 支持多数据库访问
+1. 多线程安全
+1. 支持事务
 
 # 入门
 
@@ -18,6 +22,8 @@
 ```java
 DB sqlite3 = DB.open("jdbc:sqlite::memory:");
 ```
+
+`DB#open`内部会自动创建连接池，为每个现成创建一个独立的连接对象，避免多线程间事务冲突；`DB#open`也能接收`DataSource`对象，即不使用自带的连接池，而使用`C3P0`等更成熟的第三方连接池实现。
 
 作为演示，此处用sqlite创建一个内存数据库。
 
@@ -33,18 +39,14 @@ Table Zombie = sqlite3.createTable("zombies", "name text", "graveyard text");
 
 `createTable`方法会自动添加一个自增长（auto increment）的`id`字段作为主键。由于各个数据库实现自增长字段的方式不同，目前`jActiveRecord`的“创建表”功能支持如下数据库：
 
-* DB2
-* Derby
 * HyperSQL
 * MySQL
-* Oracle 12c
 * PostgreSQL
 * SQLite
-* Sybase
 
-如果你使用的数据库不在上述列表中，可以自己实现`me.zzp.ar.d.Dialect`接口，并添加到`META-INF/services/me.zzp.ar.d.Dialect`。`jActiveRecord`采用`Java 6`的`ServiceLoader`自动加载实现`Dialect`接口的类。*注意* 如果你不通过`jActiveRecord`创建表，则不用担心兼容性问题。
+如果你使用的数据库不在上述列表中，可以自己实现`me.zzp.ar.d.Dialect`接口，并添加到`META-INF/services/me.zzp.ar.d.Dialect`。`jActiveRecord`采用`Java 6`的`ServiceLoader`自动加载实现`Dialect`接口的类。
 
-此外`jActiveRecord`还会额外添加`created_at`和`updated_at`两个字段，分别保存记录被创建和更新的时间。因此，上述代码总共创建了5个字段：`id`、`name`、`graveyard`、`created_at`和`updated_at`。
+此外`jActiveRecord`还会额外添加`created_at`和`updated_at`两个字段，类型均为`timestamp`，分别保存记录被创建和更新的时间。因此，上述代码总共创建了5个字段：`id`、`name`、`graveyard`、`created_at`和`updated_at`。
 
 ## 添加
 
@@ -61,7 +63,6 @@ Zombie.create("graveyard", "My Fathers Basement", "name", "Jim");
 
 `jActiveRecord`提供了下列查询方法：
 
-* `Table sort(String... columns)`：设置用于排序的列，默认为`id`升序。
 * `Record first()`：返回第一条记录。
 * `Record first(String condition, Object... args)`：根据指定列的值第一条记录（允许为null）。
 * `Record last()`：返回最后一条记录。
