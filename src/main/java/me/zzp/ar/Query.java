@@ -8,21 +8,19 @@ import me.zzp.ar.sql.TSqlBuilder;
 public class Query {
   private final Table table;
   private final TSqlBuilder sql;
-  private final List<Object> params;
 
   Query(Table table) {
     this.table = table;
     this.sql = new TSqlBuilder();
-    this.params = new LinkedList<Object>();
   }
   
-  public List<Record> all() {
-    return table.query(sql, params.toArray());
+  public List<Record> all(Object... params) {
+    return table.query(sql, params);
   }
 
-  public Record one() {
+  public Record one(Object... params) {
     limit(1);
-    List<Record> models = all();
+    List<Record> models = all(params);
     if (models == null || models.isEmpty()) {
       return null;
     } else {
@@ -45,10 +43,8 @@ public class Query {
     return this;
   }
 
-  public Query where(String condition, Object... params) {
+  public Query where(String condition) {
     sql.addCondition(condition);
-    if (params != null && params.length > 0)
-      this.params.addAll(Arrays.asList(params));
     return this;
   }
 

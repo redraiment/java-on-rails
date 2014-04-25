@@ -228,7 +228,7 @@ public final class Table {
   }
   
   public Record first(String condition, Object... args) {
-    return select().where(condition, args).limit(1).one();
+    return select().where(condition).limit(1).one(args);
   }
 
   public Record last() {
@@ -236,7 +236,7 @@ public final class Table {
   }
 
   public Record last(String condition, Object... args) {
-    return select().where(condition, args).orderBy(primaryKey.concat(" desc")).limit(1).one();
+    return select().where(condition).orderBy(primaryKey.concat(" desc")).limit(1).one(args);
   }
 
   public Record find(int id) {
@@ -272,7 +272,7 @@ public final class Table {
   }
 
   public List<Record> where(String condition, Object... args) {
-    return select().where(condition, args).all();
+    return select().where(condition).all(args);
   }
 
   public List<Record> paging(int page, int size) {
