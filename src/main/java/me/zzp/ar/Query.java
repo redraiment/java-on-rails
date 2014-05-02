@@ -1,7 +1,5 @@
 package me.zzp.ar;
 
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import me.zzp.ar.sql.TSqlBuilder;
 
