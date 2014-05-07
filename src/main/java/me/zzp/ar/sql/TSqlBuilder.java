@@ -3,6 +3,12 @@ package me.zzp.ar.sql;
 import java.util.Arrays;
 import me.zzp.util.Seq;
 
+/**
+ * TSQL构造器。
+ * 
+ * @since 1.0
+ * @author redraiment
+ */
 public class TSqlBuilder extends AbstractSqlBuilder {
   @Override
   public SqlBuilder insert() {

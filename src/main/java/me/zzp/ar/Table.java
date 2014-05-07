@@ -19,6 +19,12 @@ import me.zzp.ar.sql.SqlBuilder;
 import me.zzp.ar.sql.TSqlBuilder;
 import me.zzp.util.Seq;
 
+/**
+ * 表对象。
+ * 
+ * @since 1.0
+ * @author redraiment
+ */
 public final class Table {
   final DB dbo;
   final String name;

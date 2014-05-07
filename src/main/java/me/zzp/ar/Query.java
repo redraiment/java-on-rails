@@ -3,6 +3,12 @@ package me.zzp.ar;
 import java.util.List;
 import me.zzp.ar.sql.TSqlBuilder;
 
+/**
+ * 高级查询对象。
+ * 
+ * @since 2.0
+ * @author redraiment
+ */
 public class Query {
   private final Table table;
   private final TSqlBuilder sql;

@@ -10,22 +10,32 @@ import java.util.logging.Logger;
 import javax.sql.DataSource;
 
 /**
- * Simple DataSource, returns a new DB connection always.
+ * <p>jActiveRecord默认DataSource实现，每一次均创建一个新的数据库连接。
+ * 当没提供DataSource时，使用这个默认的实现。</p>
+ * 
+ * @since 2.0
  * @author redraiment
  */
 public final class JdbcDataSource implements DataSource {
   private final String url;
   private final Properties info;
 
+  /**
+   * 提供连接数据库基本信息。
+   * 
+   * @param url 数据库连接地址
+   * @param info 包含用户名、密码等登入信息。
+   */
   public JdbcDataSource(String url, Properties info) {
     this.url = url;
     this.info = info;
   }
 
   /**
-   * Returns new connection always.
-   * @return a new connection.
-   * @throws SQLException 
+   * 每次调用时均返回一个新的数据库连接。
+   * 
+   * @return 一个新的数据库连接。
+   * @throws SQLException 连接数据库失败。
    */
   @Override
   public Connection getConnection() throws SQLException {
@@ -33,9 +43,10 @@ public final class JdbcDataSource implements DataSource {
   }
 
   /**
-   * Returns new connection always.
-   * @return a new connection.
-   * @throws SQLException 
+   * 每次调用时均返回一个新的数据库连接。
+   * 
+   * @return 一个新的数据库连接。
+   * @throws SQLException 连接数据库失败。
    */
   @Override
   public Connection getConnection(String username, String password) throws SQLException {
@@ -43,9 +54,10 @@ public final class JdbcDataSource implements DataSource {
   }
 
   /**
-   * Not supported yet.
-   * @return nothing
-   * @throws SQLException 
+   * 不支持，永远不会被调用。
+   * 
+   * @return 无
+   * @throws SQLException 从不
    */
   @Override
   public PrintWriter getLogWriter() throws SQLException {
@@ -53,8 +65,9 @@ public final class JdbcDataSource implements DataSource {
   }
 
   /**
-   * Not supported yet.
-   * @throws SQLException 
+   * 不支持，永远不会被调用。
+   * 
+   * @throws SQLException 从不
    */
   @Override
   public void setLogWriter(PrintWriter out) throws SQLException {
@@ -62,8 +75,9 @@ public final class JdbcDataSource implements DataSource {
   }
 
   /**
-   * Not supported yet.
-   * @throws SQLException 
+   * 不支持，永远不会被调用。
+   * 
+   * @throws SQLException 从不
    */
   @Override
   public void setLoginTimeout(int seconds) throws SQLException {
@@ -71,9 +85,10 @@ public final class JdbcDataSource implements DataSource {
   }
 
   /**
-   * Not supported yet.
-   * @return nothing
-   * @throws SQLException 
+   * 不支持，永远不会被调用。
+   * 
+   * @return 无
+   * @throws SQLException 从不
    */
   @Override
   public int getLoginTimeout() throws SQLException {
@@ -81,9 +96,10 @@ public final class JdbcDataSource implements DataSource {
   }
 
   /**
-   * Not supported yet.
-   * @return nothing
-   * @throws SQLFeatureNotSupportedException
+   * 不支持，永远不会被调用。
+   * 
+   * @return 无
+   * @throws SQLFeatureNotSupportedException 从不
    */
   @Override
   public Logger getParentLogger() throws SQLFeatureNotSupportedException {
@@ -91,9 +107,10 @@ public final class JdbcDataSource implements DataSource {
   }
 
   /**
-   * Not supported yet.
-   * @return nothing
-   * @throws SQLException 
+   * 不支持，永远不会被调用。
+   * 
+   * @return 无
+   * @throws SQLException 从不
    */
   @Override
   public <T> T unwrap(Class<T> iface) throws SQLException {
@@ -101,9 +118,10 @@ public final class JdbcDataSource implements DataSource {
   }
 
   /**
-   * Not supported yet.
-   * @return nothing
-   * @throws SQLException 
+   * 不支持，永远不会被调用。
+   * 
+   * @return 无
+   * @throws SQLException 从不
    */
   @Override
   public boolean isWrapperFor(Class<?> iface) throws SQLException {

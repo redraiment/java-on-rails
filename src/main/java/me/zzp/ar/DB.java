@@ -26,6 +26,12 @@ import me.zzp.ar.pool.JdbcDataSource;
 import me.zzp.ar.pool.ThreadConnection;
 import me.zzp.util.Seq;
 
+/**
+ * 数据库对象。
+ * 
+ * @since 1.0
+ * @author redraiment
+ */
 public final class DB {
   private static final ServiceLoader<Dialect> dialects;
 

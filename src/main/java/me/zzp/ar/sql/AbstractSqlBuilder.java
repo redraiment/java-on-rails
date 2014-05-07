@@ -5,6 +5,13 @@ import java.util.Deque;
 import java.util.LinkedList;
 import me.zzp.util.Seq;
 
+/**
+ * 实现生成insert、update、delete和select的语句的方法。
+ * 由子类自行实现如何填充数据。
+ * 
+ * @since 1.0
+ * @author redraiment
+ */
 public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected static enum Mode {
     Select,

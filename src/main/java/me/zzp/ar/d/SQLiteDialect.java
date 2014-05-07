@@ -5,7 +5,19 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import me.zzp.ar.ex.DBOpenException;
 
+/**
+ * SQLite方言。
+ * 
+ * @since 1.0
+ * @author redraiment
+ */
 public class SQLiteDialect implements Dialect {
+  /**
+   * 判断当前数据库的名称里是否包含sqlite（忽略大小写）。
+   * 
+   * @param c 数据库连接
+   * @return 如果数据库名称包含sqlite，则返回true；否则返回false。
+   */
   @Override
   public boolean accept(Connection c) {
     try {
@@ -17,11 +29,22 @@ public class SQLiteDialect implements Dialect {
     }
   }
 
+  /**
+   * 返回SQLite中定义自增长的整型主键语句。
+   * 
+   * @return integer primary key autoincrement。
+   */
   @Override
   public String getIdentity() {
     return "integer primary key autoincrement";
   }
 
+  /**
+   * 原样返回标识。
+   * 
+   * @param identifier 待转换的标识。
+   * @return 标识本身。
+   */
   @Override
   public String getCaseIdentifier(String identifier) {
     return identifier;

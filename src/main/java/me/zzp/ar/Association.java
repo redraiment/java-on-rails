@@ -3,6 +3,12 @@ package me.zzp.ar;
 import java.util.Map;
 import me.zzp.ar.ex.UndefinedAssociationException;
 
+/**
+ * 表之间的关联。
+ * 
+ * @since 1.0
+ * @author redraiment
+ */
 public final class Association {
   private final Map<String, Association> relations;
   private final boolean onlyOne;

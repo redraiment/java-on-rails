@@ -4,6 +4,12 @@ import java.util.Map;
 import java.util.Set;
 import me.zzp.ar.ex.IllegalFieldNameException;
 
+/**
+ * 行记录对象。
+ * 
+ * @since 1.0
+ * @author redraiment
+ */
 public final class Record {
   private final Table table;
   private final Map<String, Object> values;

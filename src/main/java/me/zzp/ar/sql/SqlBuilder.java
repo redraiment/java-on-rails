@@ -1,5 +1,11 @@
 package me.zzp.ar.sql;
 
+/**
+ * SQL语句构造器。
+ * 
+ * @since 1.0
+ * @author redraiment
+ */
 public interface SqlBuilder {
   public SqlBuilder insert();
   public SqlBuilder into(String table);
