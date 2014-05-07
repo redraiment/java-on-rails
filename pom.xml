@@ -5,6 +5,81 @@
     <artifactId>jactiverecord</artifactId>
     <version>2.1</version>
     <packaging>jar</packaging>
+
+    <name>jActiveRecord</name>
+    <description>ActiveRecord of Ruby on Rails in Java</description>
+    <url>https://github.com/redraiment/jactiverecord</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>redraiment</id>
+            <name>Zhang, Zepeng</name>
+            <email>redraiment@gmail.com</email>
+            <url>http://zzp.me</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:redraiment/jactiverecord.git</connection>
+        <developerConnection>scm:git:git@github.com:redraiment/jactiverecord.git</developerConnection>
+        <url>git@github.com:redraiment/jactiverecord.git</url>
+    </scm>
+    
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <!-- for source -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.2.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- for gpg -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>sonatype-nexus-snapshots</id>
+                    <name>Sonatype Nexus snapshot repository</name>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>sonatype-nexus-staging</id>
+                    <name>Sonatype Nexus release repository</name>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
