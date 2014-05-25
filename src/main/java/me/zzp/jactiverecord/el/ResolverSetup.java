@@ -9,6 +9,7 @@ public class ResolverSetup implements ServletContextListener {
   @Override
   public void contextInitialized(ServletContextEvent e) {
     JspApplicationContext context = JspFactory.getDefaultFactory().getJspApplicationContext(e.getServletContext());
+    context.addELResolver(new TableELResolver());
     context.addELResolver(new RecordELResolver());
   }
 
