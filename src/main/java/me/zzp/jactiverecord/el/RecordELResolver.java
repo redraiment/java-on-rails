@@ -9,12 +9,23 @@ import javax.el.ELResolver;
 import me.zzp.ar.Record;
 
 public final class RecordELResolver extends ELResolver {
+  private final boolean camelCase;
+
+  public RecordELResolver(boolean camelCase) {
+    this.camelCase = camelCase;
+  }
+  
+  private String getKey(Object property) {
+    String key = property.toString();
+    return camelCase? key.replaceAll("(?=[A-Z])", "_").toLowerCase(): key;
+  }
+
   @Override
   public Object getValue(ELContext context, Object base, Object property) {
     if (base != null && base instanceof Record && property != null) {
       context.setPropertyResolved(true);
       Record record = (Record) base;
-      return record.get(property.toString());
+      return record.get(getKey(property));
     } else {
       context.setPropertyResolved(false);
       return null;
@@ -26,7 +37,7 @@ public final class RecordELResolver extends ELResolver {
     if (base != null && base instanceof Record && property != null) {
       context.setPropertyResolved(true);
       Record record = (Record) base;
-      Object o = record.get(property.toString());
+      Object o = record.get(getKey(property));
       return o == null? null: o.getClass();
     } else {
       context.setPropertyResolved(false);
@@ -39,7 +50,7 @@ public final class RecordELResolver extends ELResolver {
     if (base != null && base instanceof Record && property != null) {
       context.setPropertyResolved(true);
       Record record = (Record) base;
-      record.set(property.toString(), value);
+      record.set(getKey(property), value);
     } else {
       context.setPropertyResolved(false);
     }
