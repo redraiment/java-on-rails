@@ -31,7 +31,7 @@ public final class Seq {
    * @return 返回由这些元素组成的List。
    */
   public static <E> List<E> list(E... args) {
-    List<E> list = new ArrayList<E>();
+    List<E> list = new ArrayList<>();
     list.addAll(Arrays.asList(args));
     return list;
   }
@@ -123,7 +123,7 @@ public final class Seq {
    * @return 合并后的List。
    */
   public static <E> List<E> merge(List<E> a, List<E> b) {
-    List<E> list = new ArrayList<E>();
+    List<E> list = new ArrayList<>();
     list.addAll(a);
     list.addAll(b);
     return list;
@@ -151,7 +151,7 @@ public final class Seq {
    * @return 去除e之后的List。
    */
   public static <E> List<E> remove(List<E> a, E e) {
-    List<E> list = new ArrayList<E>();
+    List<E> list = new ArrayList<>();
     for (E o : a) {
       if (!o.equals(e)) {
         list.add(o);
@@ -182,7 +182,7 @@ public final class Seq {
    * @return 根据下标获得的元素组成的新List。
    */
   public static <E> List<E> valuesAt(List<E> from, int... indexes) {
-    List<E> list = new ArrayList<E>();
+    List<E> list = new ArrayList<>();
     for (int i : indexes) {
       if (0 <= i && i < from.size()) {
         list.add(from.get(i));
@@ -254,7 +254,7 @@ public final class Seq {
    * @return 格式化后的新列表。
    */
   public static List<String> map(Collection<?> from, String format) {
-    List<String> to = new ArrayList<String>(from.size());
+    List<String> to = new ArrayList<>(from.size());
     for (Object e : from) {
       to.add(String.format(format, e));
     }
@@ -269,8 +269,8 @@ public final class Seq {
    * @return 拆分后的字符串List。
    */
   public static List<String> partition(Collection<String> from, int n, String delimiter) {
-    List<String> to = new ArrayList<String>();
-    List<String> buffer = new ArrayList<String>(n);
+    List<String> to = new ArrayList<>();
+    List<String> buffer = new ArrayList<>(n);
     for (String e : from) {
       buffer.add(e);
       if (buffer.size() >= n) {

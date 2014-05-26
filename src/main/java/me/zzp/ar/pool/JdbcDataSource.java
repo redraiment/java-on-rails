@@ -109,6 +109,7 @@ public final class JdbcDataSource implements DataSource {
   /**
    * 不支持，永远不会被调用。
    * 
+   * @param <T> 类型
    * @return 无
    * @throws SQLException 从不
    */

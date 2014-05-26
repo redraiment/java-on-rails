@@ -55,9 +55,7 @@ public final class DB {
   }
 
   public static DB open(DataSource pool) {
-    try {
-      Connection base = pool.getConnection();
-
+    try (Connection base = pool.getConnection()) {
       for (Dialect dialect : dialects) {
         if (dialect.accept(base)) {
           base.close();
@@ -83,8 +81,8 @@ public final class DB {
 
   private DB(ThreadLocal<Connection> base, Dialect dialect) {
     this.base = base;
-    this.columns = new HashMap<String, Map<String, Integer>>();
-    this.relations = new HashMap<String, Map<String, Association>>();
+    this.columns = new HashMap<>();
+    this.relations = new HashMap<>();
     this.dialect = dialect;
   }
 
@@ -92,11 +90,11 @@ public final class DB {
     Set<String> tables = new HashSet();
     try {
       DatabaseMetaData db = base.get().getMetaData();
-      ResultSet rs = db.getTables(null, null, "%", new String[] {"TABLE"});
-      while (rs.next()) {
-        tables.add(rs.getString("table_name"));
+      try (ResultSet rs = db.getTables(null, null, "%", new String[] {"TABLE"})) {
+        while (rs.next()) {
+          tables.add(rs.getString("table_name"));
+        }
       }
-      rs.close();
     } catch (SQLException e) {
       throw new DBOpenException(e);
     }
@@ -133,17 +131,18 @@ public final class DB {
             throw new IllegalArgumentException(String.format("Illegal table name: %s", name));
           }
 
-          Map<String, Integer> column = new LinkedHashMap<String, Integer>();
+          Map<String, Integer> column = new LinkedHashMap<>();
           DatabaseMetaData db = base.get().getMetaData();
-          ResultSet rs = db.getColumns(catalog, schema, table, null);
-          while (rs.next()) {
-            String columnName = rs.getString("column_name");
-            if (columnName.equalsIgnoreCase("id")
-                || columnName.equalsIgnoreCase("created_at")
-                || columnName.equalsIgnoreCase("updated_at")) {
-              continue;
+          try (ResultSet rs = db.getColumns(catalog, schema, table, null)) {
+            while (rs.next()) {
+              String columnName = rs.getString("column_name");
+              if (columnName.equalsIgnoreCase("id")
+                  || columnName.equalsIgnoreCase("created_at")
+                  || columnName.equalsIgnoreCase("updated_at")) {
+                continue;
+              }
+              column.put(parseKeyParameter(columnName), rs.getInt("data_type"));
             }
-            column.put(parseKeyParameter(columnName), rs.getInt("data_type"));
           }
           columns.put(name, column);
         }
@@ -195,10 +194,8 @@ public final class DB {
   }
 
   public void execute(String sql, Object[] params, int[] types) {
-    try {
-      PreparedStatement call = prepare(sql, params, types);
+    try (PreparedStatement call = prepare(sql, params, types)) {
       call.executeUpdate();
-      call.close();
     } catch (SQLException e) {
       throw new SqlExecuteException(sql, e);
     }

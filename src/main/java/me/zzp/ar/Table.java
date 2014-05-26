@@ -33,7 +33,7 @@ public final class Table {
   final String primaryKey;
 
   private String foreignTable;
-  private final Map<String, Integer> foreignKeys = new HashMap<String, Integer>();
+  private final Map<String, Integer> foreignKeys = new HashMap<>();
 
   Table(DB dbo, String name, Map<String, Integer> columns, Map<String, Association> relations) {
     this.dbo = dbo;
@@ -72,7 +72,7 @@ public final class Table {
   }
 
   private String[] getForeignKeys() {
-    List<String> conditions = new ArrayList<String>();
+    List<String> conditions = new ArrayList<>();
     for (Map.Entry<String, Integer> e : foreignKeys.entrySet()) {
       conditions.add(String.format("%s.%s = %d", name, e.getKey(), e.getValue()));
     }
@@ -91,7 +91,7 @@ public final class Table {
 
   /* CRUD */
   public Record create(Object... args) {
-    Map<String, Object> data = new HashMap<String, Object>();
+    Map<String, Object> data = new HashMap<>();
     data.putAll(foreignKeys);
     for (int i = 0; i < args.length; i += 2) {
       String key = DB.parseKeyParameter(args[i].toString());
@@ -142,7 +142,7 @@ public final class Table {
    * @return 根据参数创建的新的Record对象
    */
   public Record create(Record o) {
-    List<Object> params = new LinkedList<Object>();
+    List<Object> params = new LinkedList<>();
     for (String key : columns.keySet()) {
       if (!foreignKeys.containsKey(key)) {
         params.add(key);
@@ -188,22 +188,18 @@ public final class Table {
   }
 
   List<Record> query(SqlBuilder sql, Object... args) {
-    List<Record> records = new LinkedList<Record>();
-    ResultSet rs = dbo.query(sql.toString(), args);
-    try {
+    List<Record> records = new LinkedList<>();
+    try (ResultSet rs = dbo.query(sql.toString(), args);
+         Statement call = rs.getStatement()) {
       ResultSetMetaData meta = rs.getMetaData();
       while (rs.next()) {
-        Map<String, Object> values = new LinkedHashMap<String, Object>();
+        Map<String, Object> values = new LinkedHashMap<>();
         for (int i = 1; i <= meta.getColumnCount(); i++) {
           String label = DB.parseKeyParameter(meta.getColumnLabel(i));
           values.put(label, rs.getObject(label));
         }
         records.add(new Record(this, values));
       }
-
-      Statement call = rs.getStatement();
-      rs.close();
-      call.close();
     } catch (SQLException e) {
       throw new SqlExecuteException(sql.toString(), e);
     }

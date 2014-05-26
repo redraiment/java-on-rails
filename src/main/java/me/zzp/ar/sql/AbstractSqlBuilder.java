@@ -32,12 +32,12 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 
   protected SqlBuilder start(Mode mode) {
     this.mode = mode;
-    fields = new LinkedList<String>();
-    tables = new LinkedList<String>();
-    conditions = new LinkedList<String>();
-    groups = new LinkedList<String>();
-    having = new LinkedList<String>();
-    orders = new LinkedList<String>();
+    fields = new LinkedList<>();
+    tables = new LinkedList<>();
+    conditions = new LinkedList<>();
+    groups = new LinkedList<>();
+    having = new LinkedList<>();
+    orders = new LinkedList<>();
     limit = offset = -1;
     return this;
   }
