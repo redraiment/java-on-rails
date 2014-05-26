@@ -73,7 +73,7 @@ public final class TableELResolver extends ELResolver {
 
   @Override
   public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object base) {
-    List<FeatureDescriptor> list = new ArrayList<>();
+    List<FeatureDescriptor> list = new ArrayList<FeatureDescriptor>();
     if (base != null && base instanceof Table) {
       Table table = (Table) base;
       for (String column : table.getColumns().keySet()) {
