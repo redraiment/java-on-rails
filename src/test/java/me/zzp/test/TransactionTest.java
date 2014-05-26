@@ -3,6 +3,7 @@ package me.zzp.test;
 import me.zzp.ar.DB;
 import me.zzp.ar.Record;
 import me.zzp.ar.Table;
+import me.zzp.ar.pool.MemoryDataSource;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,7 +15,7 @@ public class TransactionTest {
 
   @Before
   public void setUp() {
-    dbo = DB.open("jdbc:sqlite::memory:");
+    dbo = MemoryDataSource.open("jdbc:sqlite::memory:");
     dbo.createTable("tweets", "zombie_id int", "content varchar(64) not null unique");
     Table Zombie = dbo.createTable("zombies", "name varchar(64)");
     Zombie.hasMany("tweets").by("zombie_id");
@@ -23,7 +24,6 @@ public class TransactionTest {
   @After
   public void tearDown() {
     if (dbo != null) {
-      dbo.close();
       dbo = null;
     }
   }

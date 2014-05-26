@@ -226,7 +226,6 @@ public class CompatibilityTest {
 
   public void tearDown() {
     if (dbo != null) {
-      dbo.close();
       dbo = null;
     }
   }

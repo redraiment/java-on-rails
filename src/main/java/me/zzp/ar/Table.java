@@ -128,10 +128,11 @@ public final class Table {
           rs.close();
         }
       }
-      call.close();
       return id > 0 ? find(id) : null;
     } catch (SQLException e) {
       throw new SqlExecuteException(sql.toString(), e);
+    } finally {
+      dbo.close(call);
     }
   }
 
@@ -189,8 +190,8 @@ public final class Table {
 
   List<Record> query(SqlBuilder sql, Object... args) {
     List<Record> records = new LinkedList<>();
-    try (ResultSet rs = dbo.query(sql.toString(), args);
-         Statement call = rs.getStatement()) {
+    ResultSet rs = dbo.query(sql.toString(), args);
+    try {
       ResultSetMetaData meta = rs.getMetaData();
       while (rs.next()) {
         Map<String, Object> values = new LinkedHashMap<>();
@@ -202,6 +203,8 @@ public final class Table {
       }
     } catch (SQLException e) {
       throw new SqlExecuteException(sql.toString(), e);
+    } finally {
+      dbo.close(rs);
     }
     return records;
   }

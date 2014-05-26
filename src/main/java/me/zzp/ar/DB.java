@@ -23,7 +23,6 @@ import me.zzp.ar.ex.SqlExecuteException;
 import me.zzp.ar.ex.TransactionException;
 import me.zzp.ar.ex.UnsupportedDatabaseException;
 import me.zzp.ar.pool.JdbcDataSource;
-import me.zzp.ar.pool.ThreadConnection;
 import me.zzp.util.Seq;
 
 /**
@@ -59,7 +58,7 @@ public final class DB {
       for (Dialect dialect : dialects) {
         if (dialect.accept(base)) {
           base.close();
-          return new DB(new ThreadConnection(pool), dialect);
+          return new DB(pool, dialect);
         }
       }
 
@@ -74,22 +73,66 @@ public final class DB {
     }
   }
 
-  private final ThreadLocal<Connection> base;
+  private final DataSource pool;
+  private final InheritableThreadLocal<Connection> base;
   private final Dialect dialect;
   private final Map<String, Map<String, Integer>> columns;
   private final Map<String, Map<String, Association>> relations;
 
-  private DB(ThreadLocal<Connection> base, Dialect dialect) {
-    this.base = base;
+  private DB(DataSource pool, Dialect dialect) {
+    this.pool = pool;
+    this.base = new InheritableThreadLocal<>();
     this.columns = new HashMap<>();
     this.relations = new HashMap<>();
     this.dialect = dialect;
   }
+  
+  private Connection getConnection() {
+    try {
+      return base.get() == null? pool.getConnection(): base.get();
+    } catch (SQLException e) {
+      throw new DBOpenException(e);
+    }
+  }
+
+  void close(Connection c) {
+    if (c != null && base.get() != c) {
+      try {
+        c.close();
+      } catch (SQLException e) {
+        throw new RuntimeException("close Connection fail", e);
+      }
+    }
+  }
+
+  void close(Statement s) {
+    if (s != null) {
+      try {
+        Connection c = s.getConnection();
+        s.close();
+        close(c);
+      } catch (SQLException e) {
+        throw new RuntimeException("close Statement fail", e);
+      }
+    }
+  }
+
+  void close(ResultSet rs) {
+    if (rs != null) {
+      try {
+        Statement s = rs.getStatement();
+        rs.close();
+        close(s);
+      } catch (SQLException e) {
+        throw new RuntimeException("close ResultSet fail", e);
+      }
+    }
+  }
 
   public Set<String> getTableNames() {
     Set<String> tables = new HashSet();
-    try {
-      DatabaseMetaData db = base.get().getMetaData();
+    try (Connection c = pool.getConnection()) {
+      DatabaseMetaData db = c.getMetaData();
       try (ResultSet rs = db.getTables(null, null, "%", new String[] {"TABLE"})) {
         while (rs.next()) {
           tables.add(rs.getString("table_name"));
@@ -100,7 +143,7 @@ public final class DB {
     }
     return tables;
   }
-  
+
   public Set<Table> getTables() {
     Set<Table> tables = new HashSet();
     for (String name : getTableNames()) {
@@ -132,16 +175,18 @@ public final class DB {
           }
 
           Map<String, Integer> column = new LinkedHashMap<>();
-          DatabaseMetaData db = base.get().getMetaData();
-          try (ResultSet rs = db.getColumns(catalog, schema, table, null)) {
-            while (rs.next()) {
-              String columnName = rs.getString("column_name");
-              if (columnName.equalsIgnoreCase("id")
-                  || columnName.equalsIgnoreCase("created_at")
-                  || columnName.equalsIgnoreCase("updated_at")) {
-                continue;
+          try (Connection c = pool.getConnection()) {
+            DatabaseMetaData db = c.getMetaData();
+            try (ResultSet rs = db.getColumns(catalog, schema, table, null)) {
+              while (rs.next()) {
+                String columnName = rs.getString("column_name");
+                if (columnName.equalsIgnoreCase("id")
+                    || columnName.equalsIgnoreCase("created_at")
+                    || columnName.equalsIgnoreCase("updated_at")) {
+                  continue;
+                }
+                column.put(parseKeyParameter(columnName), rs.getInt("data_type"));
               }
-              column.put(parseKeyParameter(columnName), rs.getInt("data_type"));
             }
           }
           columns.put(name, column);
@@ -170,12 +215,13 @@ public final class DB {
   }
 
   public PreparedStatement prepare(String sql, Object[] params, int[] types) {
+    Connection c = getConnection();
     try {
       PreparedStatement call;
       if (sql.trim().toLowerCase().startsWith("insert")) {
-        call = base.get().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        call = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
       } else {
-        call = base.get().prepareStatement(sql);
+        call = c.prepareStatement(sql);
       }
 
       if (params != null && params.length > 0) {
@@ -194,10 +240,13 @@ public final class DB {
   }
 
   public void execute(String sql, Object[] params, int[] types) {
-    try (PreparedStatement call = prepare(sql, params, types)) {
+    PreparedStatement call = prepare(sql, params, types);
+    try {
       call.executeUpdate();
     } catch (SQLException e) {
       throw new SqlExecuteException(sql, e);
+    } finally {
+      close(call);
     }
   }
 
@@ -232,44 +281,37 @@ public final class DB {
     execute(String.format("drop index %s", name));
   }
 
-  public void close() {
-    try {
-      base.get().close();
-    } catch (SQLException e) {
-      throw new RuntimeException("close connection fail", e);
-    }
-  }
-
   /* Transaction */
   public void batch(Runnable transaction) {
-    try {
-      base.get().setAutoCommit(false);
-    } catch (SQLException e) {
-      throw new TransactionException("transaction setAutoCommit(false)", e);
-    }
-
-    try {
-      transaction.run();
-    } catch (RuntimeException e) {
+    // TODO: 不支持嵌套事务
+    try (Connection c = pool.getConnection()) {
       try {
-        base.get().rollback();
-        base.get().setAutoCommit(true);
-      } catch (SQLException ex) {
-        throw new TransactionException("transaction rollback", ex);
-      }
-      throw e;
-    }
-
-    try {
-      base.get().commit();
-    } catch (SQLException e) {
-      throw new TransactionException("transaction commit", e);
-    } finally {
-      try {
-        base.get().setAutoCommit(true);
+        c.setAutoCommit(false);
       } catch (SQLException e) {
-        throw new TransactionException("transaction setAutoCommit(true)", e);
+        throw new TransactionException("transaction setAutoCommit(false)", e);
       }
+      base.set(c);
+
+      try {
+        transaction.run();
+      } catch (RuntimeException e) {
+        try {
+          c.rollback();
+        } catch (SQLException ex) {
+          throw new TransactionException("transaction rollback: " + ex.getMessage(), e);
+        }
+        throw e;
+      }
+
+      try {
+        c.commit();
+      } catch (SQLException e) {
+        throw new TransactionException("transaction commit", e);
+      }
+    } catch (SQLException e) {
+      throw new DBOpenException(e);
+    } finally {
+      base.set(null);
     }
   }
 
