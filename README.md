@@ -15,6 +15,18 @@
 
 参考[Rails For Zombies](http://railsforzombies.org/)，我们一步一步创建一套僵尸微博系统的数据层。
 
+## 安装
+
+`jActiveRecord`采用`Maven`维护，并已发布到中央库，仅需在`pom.xml`中添加如下声明：
+
+```xml
+<dependency>
+  <groupId>me.zzp</groupId>
+  <artifactId>jactiverecord</artifactId>
+  <version>2.1</version>
+</dependency>
+```
+
 ## 连接数据库
 
 `jActiveRecord`的入口是`me.zzp.ar.DB`类，通过open这个静态方法创建数据库对象，open方法的参数与`java.sql.DriverManager#getConnection`兼容。
@@ -71,6 +83,7 @@ Zombie.create("graveyard", "My Fathers Basement", "name", "Jim");
 * `List<Record> findBy(String key, Object value)`：根据指定列的值查询（允许为null）。
 * `List<Record> all()`：返回所有记录。
 * `List<Record> where(String condition, Object... args)`：指定负责的过滤条件，兼容`java.sql.PreparedStatement`。
+* `List<Record> paging(int page, int size)`：分页查询，`page`从`0`开始。
 
 `first`、`last`和`find`等方法仅返回一条记录；另一些方法可能返回多条记录，因此返回`List`。
 
