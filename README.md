@@ -1,6 +1,6 @@
 # jActiveRecord-EL
 
-`jActiveRecord-EL`是[jActiveRecord](https://github.com/redraiment/jactiverecord)的辅助项目，简化在EL表达式中访问数据的方法，做到像操作不同`JavaBean`一样操作`Record`和`Table`类型的对象。适合采用了`jActiveRecord`的`Web`项目。
+`jActiveRecord-EL`是[jActiveRecord](https://github.com/redraiment/jactiverecord)的辅助项目，简化在EL表达式中访问数据的方法，做到像操作普通`JavaBean`一样操作`Record`和`Table`类型的对象。适合采用了`jActiveRecord`的`Web`项目。
 
 # 安装
 
