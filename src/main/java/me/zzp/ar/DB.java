@@ -289,6 +289,7 @@ public final class DB {
   public void batch(Runnable transaction) {
     // TODO: 不支持嵌套事务
     try (Connection c = pool.getConnection()) {
+      boolean commit = c.getAutoCommit();
       try {
         c.setAutoCommit(false);
       } catch (SQLException e) {
@@ -301,6 +302,7 @@ public final class DB {
       } catch (RuntimeException e) {
         try {
           c.rollback();
+          c.setAutoCommit(commit);
         } catch (SQLException ex) {
           throw new TransactionException("transaction rollback: " + ex.getMessage(), e);
         }
@@ -312,6 +314,7 @@ public final class DB {
       } catch (SQLException e) {
         throw new TransactionException("transaction commit", e);
       }
+      c.setAutoCommit(commit);
     } catch (SQLException e) {
       throw new DBOpenException(e);
     } finally {
