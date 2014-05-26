@@ -16,19 +16,29 @@ import javax.sql.DataSource;
  * @since 2.0
  * @author redraiment
  */
-public final class JdbcDataSource implements DataSource {
-  private final String url;
-  private final Properties info;
+public final class SingletonDataSource implements DataSource {
+  private final Connection instance;
 
   /**
    * 提供连接数据库基本信息。
    * 
    * @param url 数据库连接地址
    * @param info 包含用户名、密码等登入信息。
+   * @throws java.sql.SQLException 连接数据库失败
    */
-  public JdbcDataSource(String url, Properties info) {
-    this.url = url;
-    this.info = info;
+  public SingletonDataSource(String url, Properties info) throws SQLException {
+    final Connection c = DriverManager.getConnection(url, info);
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        try {
+          c.close();
+        } catch (SQLException e) {
+          throw new RuntimeException("close database fail");
+        }
+      }
+    });
+    instance = new SingletonConnection(c);
   }
 
   /**
@@ -39,7 +49,7 @@ public final class JdbcDataSource implements DataSource {
    */
   @Override
   public Connection getConnection() throws SQLException {
-    return DriverManager.getConnection(url, info);
+    return instance;
   }
 
   /**
@@ -50,7 +60,7 @@ public final class JdbcDataSource implements DataSource {
    */
   @Override
   public Connection getConnection(String username, String password) throws SQLException {
-    return DriverManager.getConnection(url, username, password);
+    return instance;
   }
 
   /**

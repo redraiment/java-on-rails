@@ -22,7 +22,7 @@ import me.zzp.ar.ex.IllegalTableNameException;
 import me.zzp.ar.ex.SqlExecuteException;
 import me.zzp.ar.ex.TransactionException;
 import me.zzp.ar.ex.UnsupportedDatabaseException;
-import me.zzp.ar.pool.JdbcDataSource;
+import me.zzp.ar.pool.SingletonDataSource;
 import me.zzp.util.Seq;
 
 /**
@@ -50,7 +50,11 @@ public final class DB {
   }
 
   public static DB open(String url, Properties info) {
-    return open(new JdbcDataSource(url, info));
+    try {
+      return open(new SingletonDataSource(url, info));
+    } catch (SQLException e) {
+      throw new DBOpenException(e);
+    }
   }
 
   public static DB open(DataSource pool) {
