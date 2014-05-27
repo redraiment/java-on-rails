@@ -6,29 +6,6 @@
 * javadoc：[http://zzp.me/jactiverecord-el/](http://zzp.me/jactiverecord-el/)
 * jActiveRecord：[http://github.com/redraiment/jactiverecord](http://github.com/redraiment/jactiverecord)
 
-# 安装
-
-下载最新的[jactiverecord.jar](https://github.com/redraiment/jactiverecord)和[jactiverecord-el.jar](https://github.com/redraiment/jactiverecord-el)，添加如下信息到`web.xml`：
-
-```xml
-<listener>
-  <listener-class>me.zzp.ar.el.ResolverSetup</listener-class>
-</listener>
-```
-
-# 骆驼命名法自动转换
-
-`JavaBean`属性的命名规则为骆驼命名法，例如“createdAt”；而数据库表的字段通常采用下划线命名法，例如“created_at”。
-
-开启了自动转换开关后就能将采用骆驼命名法的属性名自动转换成下划线命名法，即`${user.created_at}`与`${user.createdAt}`等价。在`web.xml`中添加如下上下文参数即可开启该选项：
-
-```xml
-<context-param>
-  <param-name>jactiverecord-el-camel-case</param-name>
-  <param-value>true</param-value>
-</context-param>
-```
-
 # 访问Record属性
 
 假设`Record`实例`user`有一个字符串类型的属性`name`，如果不使用`jActiveRecord-EL`，要在EL表达式中获得该属性的值，方法是：
@@ -55,3 +32,53 @@
 * `索引`：调用`Table#find(int id)`。即`${User[1]}`等价于`${User.find(1)}`
 
 *注意* `${User[1]}`与`${User.all[1]}`的意义并不相同，前者返回表中`id`等于1的记录；后者返回所有记录（all）中第*二*条记录（索引从0开始）。
+
+# 配置
+
+## 增强EL表达式
+
+要使用jActiveRecord-EL，需要在`web.xml`中添加如下信息：
+
+```xml
+<listener>
+  <listener-class>me.zzp.ar.el.ResolverSetup</listener-class>
+</listener>
+```
+
+## 骆驼命名法（可选）
+
+`JavaBean`属性的命名规则为骆驼命名法，例如“createdAt”；而数据库表的字段通常采用下划线命名法，例如“created_at”。在`web.xml`中添加如下上下文参数即可开启自动转换开关，之后就能使用骆驼命名法访问属性，即`${user.created_at}`与`${user.createdAt}`等价。
+
+```xml
+<context-param>
+  <param-name>jactiverecord-el-camel-case</param-name>
+  <param-value>true</param-value>
+</context-param>
+```
+
+## 创建数据库对象（可选）
+
+在`web`项目中使用`jActiveRecord`，通常第一步就是通过数据源（`javax.sql.DataSource`）创建数据库对象（`me.zzp.ar.DB`）。因此`jActiveRecord-EL`提供了另一个上下文监听器，在启动服务器的时候自动创建数据库对象，并添加到上下文对象的属性中，设置方法如下：
+
+```xml
+<listener>
+  <listener-class>me.zzp.ar.el.DatabaseSetup</listener-class>
+</listener>
+<context-param>
+  <param-name>jactiverecord-el-data-source</param-name>
+  <param-value>java:/comp/env/jdbc/DataSource</param-value>
+</context-param>
+```
+
+## 重命名属性名（可选）
+
+`DatabaseSetup`创建的上下文属性名默认为“dbo”，即在`Servlet`中通过`getServletContext().getAttribute("dbo")`获得数据库对象。如果你不喜欢“dbo”这个名字，可指定以下信息自定义属性名：
+
+```xml
+<context-param>
+  <param-name>jactiverecord-el-attribute-name</param-name>
+  <param-value>database</param-value>
+</context-param>
+```
+
+这样，属性名就改成了database。
