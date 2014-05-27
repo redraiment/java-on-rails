@@ -10,8 +10,8 @@ import java.util.logging.Logger;
 import javax.sql.DataSource;
 
 /**
- * <p>jActiveRecord默认DataSource实现，每一次均创建一个新的数据库连接。
- * 当没提供DataSource时，使用这个默认的实现。</p>
+ * <p>jActiveRecord默认DataSource实现，永远只返回同一个数据库连接。
+ * 因此，内存型的数据库也能正常工作。</p>
  * 
  * @since 2.0
  * @author redraiment
