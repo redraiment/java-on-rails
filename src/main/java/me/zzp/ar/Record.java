@@ -2,7 +2,6 @@ package me.zzp.ar;
 
 import java.util.Map;
 import java.util.Set;
-import me.zzp.ar.ex.IllegalFieldNameException;
 
 /**
  * 行记录对象。
@@ -25,8 +24,10 @@ public final class Record {
 
   public <E> E get(String name) {
     name = DB.parseKeyParameter(name);
+    Object value = null;
+
     if (values.containsKey(name)) {
-      return (E) values.get(name);
+      value = values.get(name);
     } else if (table.relations.containsKey(name)) {
       Association relation = table.relations.get(name);
       Table active = table.dbo.active(relation.target);
@@ -34,10 +35,14 @@ public final class Record {
       if (relation.isAncestor() && !relation.isCross()) {
         active.constrain(relation.key, getInt("id"));
       }
-      return (E)(relation.isOnlyOneResult()? active.first(): active);
-    } else {
-      throw new IllegalFieldNameException(name);
+      value = (relation.isOnlyOneResult()? active.first(): active);
     }
+
+    String key = "get_".concat(name);
+    if (table.hooks.containsKey(key)) {
+      value = table.hooks.get(key).call(this, value);
+    }
+    return (E)value;
   }
 
   /* For primitive types */
@@ -85,6 +90,10 @@ public final class Record {
 
   public Record set(String name, Object value) {
     name = DB.parseKeyParameter(name);
+    String key = "set_".concat(name);
+    if (table.hooks.containsKey(key)) {
+      value = table.hooks.get(key).call(this, value);
+    }
     values.put(name, value);
     return this;
   }

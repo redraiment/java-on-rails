@@ -10,4 +10,8 @@ public class IllegalFieldNameException extends RuntimeException {
   public IllegalFieldNameException(String fieldName) {
     super(String.format("illegal field %s", fieldName));
   }
+
+  public IllegalFieldNameException(String fieldName, Throwable cause) {
+    super(String.format("illegal field %s", fieldName), cause);
+  }
 }

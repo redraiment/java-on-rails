@@ -82,6 +82,7 @@ public final class DB {
   private final Dialect dialect;
   private final Map<String, Map<String, Integer>> columns;
   private final Map<String, Map<String, Association>> relations;
+  private final Map<String, Map<String, Lambda>> hooks;
 
   private DB(DataSource pool, Dialect dialect) {
     this.pool = pool;
@@ -89,8 +90,9 @@ public final class DB {
     this.columns = new HashMap<>();
     this.relations = new HashMap<>();
     this.dialect = dialect;
+    this.hooks = new HashMap<>();
   }
-  
+
   private Connection getConnection() {
     try {
       return base.get() == null? pool.getConnection(): base.get();
@@ -210,9 +212,17 @@ public final class DB {
         }
       }
     }
+    
+    if (!hooks.containsKey(name)) {
+      synchronized (hooks) {
+        if (!hooks.containsKey(name)) {
+          hooks.put(name, new HashMap<String, Lambda>());
+        }
+      }
+    }
 
     try {
-      return new Table(this, name, getColumns(name), relations.get(name));
+      return new Table(this, name, getColumns(name), relations.get(name), hooks.get(name));
     } catch (SQLException e) {
       throw new IllegalTableNameException(name, e);
     }

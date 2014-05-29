@@ -1,10 +1,10 @@
 package me.zzp.ar;
 
+import java.lang.reflect.Method;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,19 +30,49 @@ public final class Table {
   final String name;
   final Map<String, Integer> columns;
   final Map<String, Association> relations;
+  final Map<String, Lambda> hooks;
   final String primaryKey;
 
   private String foreignTable;
   private final Map<String, Integer> foreignKeys = new HashMap<>();
 
-  Table(DB dbo, String name, Map<String, Integer> columns, Map<String, Association> relations) {
+  Table(DB dbo, String name, Map<String, Integer> columns, Map<String, Association> relations, Map<String, Lambda> hooks) {
     this.dbo = dbo;
     this.name = name;
     this.columns = columns;
     this.relations = relations;
+    this.hooks = hooks;
     this.primaryKey = name.concat(".id");
   }
 
+  /**
+   * 继承给定的JavaBean，扩展Record对象的get和set方法。
+   * 
+   * @param bean 希望被继承的JavaBean
+   * @return 返回Table自身
+   * @since 2.3
+   */
+  public Table extend(Object bean) {
+    Class<?> type = bean.getClass();
+    for (Method method : type.getDeclaredMethods()) {
+      Class<?> returnType = method.getReturnType();
+      Class<?>[] params = method.getParameterTypes();
+      String key = method.getName();
+
+      if (params.length == 2
+          && key.length() > 3
+          && (key.startsWith("get") || key.startsWith("set"))
+          && params[0].isAssignableFrom(Record.class)
+          && params[1].isAssignableFrom(Object.class)
+          && Object.class.isAssignableFrom(returnType)) {
+        key = key.replaceAll("(?=[A-Z])", "_").toLowerCase();
+        hooks.put(key, new Lambda(bean, method));
+      }
+    }
+
+    return this;
+  }
+  
   public Map<String, Integer> getColumns() {
     return Collections.unmodifiableMap(columns);
   }
