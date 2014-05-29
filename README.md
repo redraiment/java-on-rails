@@ -23,7 +23,7 @@
 <dependency>
   <groupId>me.zzp</groupId>
   <artifactId>jactiverecord</artifactId>
-  <version>2.2</version>
+  <version>2.3</version>
 </dependency>
 ```
 
