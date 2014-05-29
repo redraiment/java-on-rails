@@ -6,6 +6,16 @@
 * javadoc：[http://zzp.me/jactiverecord-el/](http://zzp.me/jactiverecord-el/)
 * jActiveRecord：[http://github.com/redraiment/jactiverecord](http://github.com/redraiment/jactiverecord)
 
+`jActiveRecord-EL`同样使用`Maven`管理，在`pom.xml`中添加如下依赖即可：
+
+```xml
+<dependency>
+  <groupId>me.zzp</groupId>
+  <artifactId>jactiverecord-el</artifactId>
+  <version>1.1</version>
+</dependency>
+```
+
 # 访问Record属性
 
 假设`Record`实例`user`有一个字符串类型的属性`name`，如果不使用`jActiveRecord-EL`，要在EL表达式中获得该属性的值，方法是：
