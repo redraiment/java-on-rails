@@ -35,9 +35,7 @@
 DB sqlite3 = DB.open("jdbc:sqlite::memory:");
 ```
 
-`DB#open`内部会自动创建连接池，为每个现成创建一个独立的连接对象，避免多线程间事务冲突；`DB#open`也能接收`DataSource`对象，即不使用自带的连接池，而使用`C3P0`等更成熟的第三方连接池实现。
-
-作为演示，此处用sqlite创建一个内存数据库。
+`DB#open`默认只创建一个数据库连接，因此内存型数据库能正常使用；真实项目中推荐使用`C3P0`等创建连接池。作为演示，此处用sqlite创建一个内存数据库。
 
 ## 创建表
 
@@ -75,15 +73,16 @@ Zombie.create("graveyard", "My Fathers Basement", "name", "Jim");
 
 `jActiveRecord`提供了下列查询方法：
 
-* `Record first()`：返回第一条记录。
-* `Record first(String condition, Object... args)`：根据指定列的值第一条记录（允许为null）。
-* `Record last()`：返回最后一条记录。
 * `Record find(int id)`：返回指定`id`的记录。
-* `Record findA(String condition, Object... args)`：根据条件返回第一条记录。
-* `List<Record> findBy(String key, Object value)`：根据指定列的值查询（允许为null）。
-* `List<Record> all()`：返回所有记录。
-* `List<Record> where(String condition, Object... args)`：指定负责的过滤条件，兼容`java.sql.PreparedStatement`。
-* `List<Record> paging(int page, int size)`：分页查询，`page`从`0`开始。
+* `List<Record> all()`：返回符合约束的所有记录。
+* `List<Record> paging(int page, int size)`：基于`all()`的分页查询，`page`从`0`开始。
+* `Record first()`：基于`all()`，返回按`id`排序的第一条记录。
+* `Record last()`：基于`all()`，返回按`id`排序的最后一条记录。
+* `List<Record> where(String condition, Object... args)`：基于`all()`，返回符合条件的所有记录。条件表达式兼容`java.sql.PreparedStatement`。
+* `Record first(String condition, Object... args)`：基于`where()`，返回按`id`排序的第一条记录。
+* `Record last(String condition, Object... args)`：基于`where()`，返回按`id`排序的最后一条记录。
+* `List<Record> findBy(String key, Object value)`：基于`all()`，返回指定列与`value`相等的所有记录。
+* `Record findA(String key, Object value)`：基于`findBy()`，返回按`id`排序的第一条记录。
 
 `first`、`last`和`find`等方法仅返回一条记录；另一些方法可能返回多条记录，因此返回`List`。
 
@@ -91,8 +90,8 @@ Zombie.create("graveyard", "My Fathers Basement", "name", "Jim");
 
 ```java
 Zombie.find(3);
-Zombie.findBy("name", "Jim");
-Zombie.where("graveyard like ?", "My Father%");
+Zombie.findA("name", "Jim");
+Zombie.first("graveyard like ?", "My Father%");
 ```
 
 数据库返回的记录被包装成`Record`对象，使用`Record#get`获取数据。借助泛型，能根据左值自动转换数据类型：
@@ -232,4 +231,4 @@ Zombie.hasAndBelongsToMany("travelled_cities").by("city_id").in("cities").throug
 
 # 总结
 
-本文通过一个微博系统的例子，介绍了`jActiveRecord`的常用功能。
+本文通过一个微博系统的例子，介绍了`jActiveRecord`的常用功能。更多特性请访问本站[Wiki](https://github.com/redraiment/jactiverecord/wiki)。
