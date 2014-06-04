@@ -12,7 +12,7 @@
 <dependency>
   <groupId>me.zzp</groupId>
   <artifactId>jactiverecord-el</artifactId>
-  <version>1.1</version>
+  <version>1.2</version>
 </dependency>
 ```
 
@@ -57,12 +57,12 @@
 
 ## 骆驼命名法（可选）
 
-`JavaBean`属性的命名规则为骆驼命名法，例如“createdAt”；而数据库表的字段通常采用下划线命名法，例如“created_at”。在`web.xml`中添加如下上下文参数即可开启自动转换开关，之后就能使用骆驼命名法访问属性，即`${user.created_at}`与`${user.createdAt}`等价。
+`JavaBean`属性的命名规则为骆驼命名法，例如“createdAt”；而数据库表的字段通常采用下划线命名法，例如“created_at”。该选项默认开启，即`${user.created_at}`与`${user.createdAt}`等价。在`web.xml`中添加如下上下文参数即可关闭自动转换开关：
 
 ```xml
 <context-param>
   <param-name>jactiverecord-el-camel-case</param-name>
-  <param-value>true</param-value>
+  <param-value>false</param-value>
 </context-param>
 ```
 
