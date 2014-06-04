@@ -10,4 +10,9 @@
     <servlet-name>Dispatcher</servlet-name>
     <url-pattern>/*</url-pattern>
   </servlet-mapping>
+  <ordering>
+    <after>
+      <others/>
+    </after>
+  </ordering>
 </web-fragment>
