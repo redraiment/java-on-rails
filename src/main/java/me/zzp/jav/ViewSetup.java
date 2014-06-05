@@ -2,6 +2,7 @@ package me.zzp.jav;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -13,11 +14,14 @@ public class ViewSetup implements ServletContextListener {
 
   private List<String> listJsp(ServletContext context, String root) {
     List<String> files = new LinkedList<>();
-    for (String path : context.getResourcePaths(root)) {
-      if (path.endsWith(".jsp")) {
-        files.add(path);
-      } else if (path.endsWith("/")) {
-        files.addAll(listJsp(context, path));
+    Set<String> paths = context.getResourcePaths(root);
+    if (paths != null) {
+      for (String path : paths) {
+        if (path.endsWith(".jsp")) {
+          files.add(path);
+        } else if (path.endsWith("/")) {
+          files.addAll(listJsp(context, path));
+        }
       }
     }
     return files;
