@@ -5,6 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Scanner;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -57,7 +58,19 @@ public class Dispatcher extends HttpServlet {
 
   @Override
   protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    match(request, response).update();
+    Service service = match(request, response);
+    if (service != null) {
+      try (Scanner rin = new Scanner(request.getInputStream()).useDelimiter("\\A")) {
+        String data = rin.hasNext()? rin.next(): "";
+        for (String pair : data.split("&")) {
+          String[] item = pair.split("=", 2);
+          if (item.length == 2) {
+            service.params.put(item[0], item[1]);
+          }
+        }
+      }
+      service.update();
+    }
   }
 
   @Override
